@@ -1,7 +1,7 @@
 package com.ivan.salesapp.web.controllers;
 
 import com.ivan.salesapp.domain.models.view.SaleViewModel;
-import com.ivan.salesapp.services.SaleService;
+import com.ivan.salesapp.services.ISaleService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,12 +16,12 @@ import java.util.stream.Collectors;
 @Controller
 @RequestMapping("/sales")
 public class SaleController extends BaseController{
-    private final SaleService saleService;
+    private final ISaleService ISaleService;
     private final ModelMapper modelMapper;
 
     @Autowired
-    public SaleController(SaleService saleService, ModelMapper modelMapper) {
-        this.saleService = saleService;
+    public SaleController(ISaleService ISaleService, ModelMapper modelMapper) {
+        this.ISaleService = ISaleService;
         this.modelMapper = modelMapper;
     }
 
@@ -29,7 +29,7 @@ public class SaleController extends BaseController{
     @PreAuthorize("hasRole('ROLE_MODERATOR')")
     public ModelAndView allSales(Principal principal, ModelAndView modelAndView){
         modelAndView.addObject("categories",
-                this.saleService.findAllSales().stream()
+                this.ISaleService.findAllSales().stream()
                         .map(s -> this.modelMapper
                                 .map(s, SaleViewModel.class))
                         .collect(Collectors.toList()));

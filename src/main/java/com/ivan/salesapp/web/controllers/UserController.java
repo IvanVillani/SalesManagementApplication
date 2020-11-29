@@ -6,7 +6,7 @@ import com.ivan.salesapp.domain.models.service.RoleServiceModel;
 import com.ivan.salesapp.domain.models.service.UserServiceModel;
 import com.ivan.salesapp.domain.models.view.UserAllViewModel;
 import com.ivan.salesapp.domain.models.view.UserProfileViewModel;
-import com.ivan.salesapp.services.UserService;
+import com.ivan.salesapp.services.IUserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,12 +21,12 @@ import java.util.stream.Collectors;
 @Controller
 @RequestMapping("/users")
 public class UserController extends BaseController{
-    private final UserService userService;
+    private final IUserService IUserService;
     private final ModelMapper modelMapper;
 
     @Autowired
-    public UserController(UserService userService, ModelMapper modelMapper) {
-        this.userService = userService;
+    public UserController(IUserService IUserService, ModelMapper modelMapper) {
+        this.IUserService = IUserService;
         this.modelMapper = modelMapper;
     }
 
@@ -42,7 +42,7 @@ public class UserController extends BaseController{
         if (!model.getPassword().equals(model.getConfirmPassword())){
             return super.view("register");
         }
-        this.userService.registerUser(this.modelMapper.map(model, UserServiceModel.class));
+        this.IUserService.registerUser(this.modelMapper.map(model, UserServiceModel.class));
 
         return redirect("/users/login");
     }
@@ -57,7 +57,7 @@ public class UserController extends BaseController{
     @PreAuthorize("isAuthenticated()")
     public ModelAndView profile(Principal principal, ModelAndView modelAndView){
         modelAndView.addObject("model", this.modelMapper
-                .map(this.userService.findUserByUsername(principal.getName()), UserProfileViewModel.class));
+                .map(this.IUserService.findUserByUsername(principal.getName()), UserProfileViewModel.class));
         return super.view("profile", modelAndView);
     }
 
@@ -65,7 +65,7 @@ public class UserController extends BaseController{
     @PreAuthorize("isAuthenticated()")
     public ModelAndView editProfile(Principal principal, ModelAndView modelAndView){
         modelAndView.addObject("model", this.modelMapper
-                .map(this.userService.findUserByUsername(principal.getName()), UserProfileViewModel.class));
+                .map(this.IUserService.findUserByUsername(principal.getName()), UserProfileViewModel.class));
         return super.view("edit-profile", modelAndView);
     }
 
@@ -75,14 +75,14 @@ public class UserController extends BaseController{
         if(!model.getPassword().equals(model.getConfirmPassword())){
             return super.view("edit-profile");
         }
-        this.userService.editUserProfile(this.modelMapper.map(model, UserServiceModel.class), model.getOldPassword());
+        this.IUserService.editUserProfile(this.modelMapper.map(model, UserServiceModel.class), model.getOldPassword());
         return super.redirect("/users/profile");
     }
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ModelAndView allUsers(ModelAndView modelAndView){
-        List<UserAllViewModel> users = this.userService.findAllUsers()
+        List<UserAllViewModel> users = this.IUserService.findAllUsers()
                 .stream()
                 .map(u -> {
                     UserAllViewModel user = this.modelMapper.map(u, UserAllViewModel.class);
@@ -99,7 +99,7 @@ public class UserController extends BaseController{
     @PostMapping("/set-user/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ModelAndView setUser(@PathVariable String id){
-        this.userService.setUserRole(id, "user");
+        this.IUserService.setUserRole(id, "user");
 
         return super.redirect("/users/all");
     }
@@ -107,7 +107,7 @@ public class UserController extends BaseController{
     @PostMapping("/set-moderator/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ModelAndView setModerator(@PathVariable String id){
-        this.userService.setUserRole(id, "moderator");
+        this.IUserService.setUserRole(id, "moderator");
 
         return super.redirect("/users/all");
     }
@@ -115,7 +115,7 @@ public class UserController extends BaseController{
     @PostMapping("/set-admin/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ModelAndView setAdmin(@PathVariable String id){
-        this.userService.setUserRole(id, "admin");
+        this.IUserService.setUserRole(id, "admin");
 
         return super.redirect("/users/all");
     }
