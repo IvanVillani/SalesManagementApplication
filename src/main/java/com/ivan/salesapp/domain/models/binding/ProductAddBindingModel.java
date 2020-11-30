@@ -1,42 +1,35 @@
 package com.ivan.salesapp.domain.models.binding;
 
-import com.ivan.salesapp.domain.entities.Category;
-import org.joda.time.DateTime;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 public class ProductAddBindingModel {
-    private String category;
-    private String product;
-    private long quantity;
+    private String name;
+    private String description;
     private BigDecimal price;
+    private long stock;
+    private MultipartFile image;
+    private List<String> categories;
 
     public ProductAddBindingModel() {
     }
 
-    public String getCategory() {
-        return category;
+    public String getName() {
+        return name;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getProduct() {
-        return product;
+    public String getDescription() {
+        return description;
     }
 
-    public void setProduct(String product) {
-        this.product = product;
-    }
-
-    public long getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(long quantity) {
-        this.quantity = quantity;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public BigDecimal getPrice() {
@@ -45,5 +38,29 @@ public class ProductAddBindingModel {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public long getStock() {
+        return stock;
+    }
+
+    public void setStock(long stock) {
+        this.stock = stock;
+    }
+
+    public MultipartFile getImage() {
+        return image;
+    }
+
+    public void setImage(MultipartFile image) {
+        this.image = image;
+    }
+
+    public List<String> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(List<String> categories) {
+        this.categories = categories;
     }
 }
