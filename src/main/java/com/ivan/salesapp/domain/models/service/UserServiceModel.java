@@ -1,7 +1,7 @@
 package com.ivan.salesapp.domain.models.service;
 
 
-import com.ivan.salesapp.domain.entities.Sale;
+import com.ivan.salesapp.domain.entities.Order;
 
 import java.util.Set;
 
@@ -12,7 +12,7 @@ public class UserServiceModel extends BaseServiceModel{
 
     private Set<RoleServiceModel> authorities;
 
-    private Set<Sale> sales;
+    private Set<Order> orders;
 
     public UserServiceModel() {
     }

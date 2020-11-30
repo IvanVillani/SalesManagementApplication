@@ -1,6 +1,6 @@
 package com.ivan.salesapp.services;
 
-import com.ivan.salesapp.domain.entities.Sale;
+import com.ivan.salesapp.domain.entities.Order;
 import com.ivan.salesapp.domain.models.service.SaleServiceModel;
 import com.ivan.salesapp.repository.SaleRepository;
 import org.modelmapper.ModelMapper;
@@ -23,9 +23,9 @@ public class SaleService implements ISaleService {
 
     @Override
     public SaleServiceModel registerSale(SaleServiceModel saleServiceModel) {
-        Sale sale = this.modelMapper.map(saleServiceModel, Sale.class);
+        Order order = this.modelMapper.map(saleServiceModel, Order.class);
 
-        return this.modelMapper.map(this.saleRepository.saveAndFlush(sale), SaleServiceModel.class);
+        return this.modelMapper.map(this.saleRepository.saveAndFlush(order), SaleServiceModel.class);
     }
 
     @Override

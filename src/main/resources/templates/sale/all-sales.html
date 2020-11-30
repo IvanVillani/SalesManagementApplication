@@ -25,15 +25,15 @@
         </thead>
         <tbody>
 
-        <th:block th:each="sale, iter : ${sales}">
+        <th:block th:each="order, iter : ${sales}">
             <tr class="row mx-auto">
                 <th class="col-md-1 text-center" th:text="${iter.index + 1}"></th>
-                <td class="col-md-2 text-center" th:text="${sale.dateTime}"></td>
-                <td class="col-md-2 text-center" th:text="${sale.category}"></td>
-                <td class="col-md-2 text-center" th:text="${sale.product}"></td>
-                <td class="col-md-2 text-center" th:text="${sale.user}"></td>
-                <td class="col-md-1 text-center" th:text="${sale.long}"></td>
-                <td class="col-md-2 text-center" th:text="${sale.price}"></td>
+                <td class="col-md-2 text-center" th:text="${order.dateTime}"></td>
+                <td class="col-md-2 text-center" th:text="${order.category}"></td>
+                <td class="col-md-2 text-center" th:text="${order.product}"></td>
+                <td class="col-md-2 text-center" th:text="${order.user}"></td>
+                <td class="col-md-1 text-center" th:text="${order.long}"></td>
+                <td class="col-md-2 text-center" th:text="${order.price}"></td>
             </tr>
         </th:block>
         </tbody>
