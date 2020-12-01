@@ -54,9 +54,13 @@ public class CategoryService implements ICategoryService {
     }
 
     @Override
-    public void deleteCategory(String id) {
+    public void deleteCategory(String id, IProductService iProductService) {
         Category category = this.categoryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Incorrect id!"));
+
+        if (iProductService.findAllByCategory(category.getName()).size() != 0){
+            throw new IllegalArgumentException("There are products in this category!");
+        }
 
         this.categoryRepository.delete(category);
     }

@@ -4,6 +4,7 @@ import com.ivan.salesapp.domain.models.binding.CategoryAddBindingModel;
 import com.ivan.salesapp.domain.models.service.CategoryServiceModel;
 import com.ivan.salesapp.domain.models.view.CategoryViewModel;
 import com.ivan.salesapp.services.ICategoryService;
+import com.ivan.salesapp.services.IProductService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,12 +18,14 @@ import java.util.stream.Collectors;
 @Controller
 @RequestMapping("/categories")
 public class CategoryController extends BaseController{
-    private final ICategoryService ICategoryService;
+    private final ICategoryService iCategoryService;
+    private final IProductService iProductService;
     private final ModelMapper modelMapper;
 
     @Autowired
-    public CategoryController(ICategoryService ICategoryService, ModelMapper modelMapper) {
-        this.ICategoryService = ICategoryService;
+    public CategoryController(ICategoryService iCategoryService, IProductService iProductService, ModelMapper modelMapper) {
+        this.iCategoryService = iCategoryService;
+        this.iProductService = iProductService;
         this.modelMapper = modelMapper;
     }
 
@@ -35,7 +38,7 @@ public class CategoryController extends BaseController{
     @PostMapping("/add")
     @PreAuthorize("hasRole('ROLE_MODERATOR')")
     public ModelAndView addCategoryConfirm(@ModelAttribute CategoryAddBindingModel model){
-        this.ICategoryService.addCategory(this.modelMapper.map(model, CategoryServiceModel.class));
+        this.iCategoryService.addCategory(this.modelMapper.map(model, CategoryServiceModel.class));
 
         return super.redirect("/categories/all");
     }
@@ -44,7 +47,7 @@ public class CategoryController extends BaseController{
     @PreAuthorize("hasRole('ROLE_MODERATOR')")
     public ModelAndView allCategories(ModelAndView modelAndView){
         modelAndView.addObject("categories",
-                this.ICategoryService.findAllCategories().stream()
+                this.iCategoryService.findAllCategories().stream()
                         .map(c -> this.modelMapper
                                 .map(c, CategoryViewModel.class))
                         .collect(Collectors.toList()));
@@ -56,7 +59,7 @@ public class CategoryController extends BaseController{
     @PreAuthorize("hasRole('ROLE_MODERATOR')")
     public ModelAndView editCategory(@PathVariable String  id, ModelAndView modelAndView){
         modelAndView.addObject("model", this.modelMapper
-                .map(this.ICategoryService.findCategoryById(id), CategoryViewModel.class));
+                .map(this.iCategoryService.findCategoryById(id), CategoryViewModel.class));
 
         return super.view("/category/edit-category", modelAndView);
     }
@@ -64,7 +67,7 @@ public class CategoryController extends BaseController{
     @PostMapping("/edit/{id}")
     @PreAuthorize("hasRole('ROLE_MODERATOR')")
     public ModelAndView editCategoryConfirm(@PathVariable String id, @ModelAttribute CategoryAddBindingModel model){
-        this.ICategoryService.editCategory(id, this.modelMapper.map(model, CategoryServiceModel.class));
+        this.iCategoryService.editCategory(id, this.modelMapper.map(model, CategoryServiceModel.class));
 
         return super.redirect("/categories/all");
     }
@@ -73,7 +76,7 @@ public class CategoryController extends BaseController{
     @PreAuthorize("hasRole('ROLE_MODERATOR')")
     public ModelAndView deleteCategory(@PathVariable String  id, ModelAndView modelAndView){
         modelAndView.addObject("model", this.modelMapper
-                .map(this.ICategoryService.findCategoryById(id), CategoryViewModel.class));
+                .map(this.iCategoryService.findCategoryById(id), CategoryViewModel.class));
 
         return super.view("/category/delete-category", modelAndView);
     }
@@ -81,7 +84,7 @@ public class CategoryController extends BaseController{
     @PostMapping("/delete/{id}")
     @PreAuthorize("hasRole('ROLE_MODERATOR')")
     public ModelAndView deleteCategoryConfirm(@PathVariable String id){
-        this.ICategoryService.deleteCategory(id);
+        this.iCategoryService.deleteCategory(id, this.iProductService);
 
         return super.redirect("/categories/all");
     }
@@ -90,7 +93,7 @@ public class CategoryController extends BaseController{
     @PreAuthorize("hasRole('ROLE_MODERATOR')")
     @ResponseBody
     public List<CategoryViewModel> fetchCategories(){
-        return this.ICategoryService.findAllCategories().stream()
+        return this.iCategoryService.findAllCategories().stream()
                 .map(c -> this.modelMapper
                 .map(c, CategoryViewModel.class))
                 .collect(Collectors.toList());

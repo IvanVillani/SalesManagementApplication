@@ -26,7 +26,7 @@
                 <th class="col-md-2 text-center" th:text="${iter.index + 1}"></th>
                 <td class="col-md-5 text-center" th:text="${category.name}"></td>
                 <td class="col-md-5 text-center">
-                    <a th:href="@{/categories/edit/{id}(id=${category.id})}" class="btn btn-dark">Edit</a>
+                    <a th:href="@{/categories/edit/{id}(id=${category.id})}" class="btn btn-secondary">Edit</a>
                     <a th:href="@{/categories/delete/{id}(id=${category.id})}" class="btn btn-dark">Delete</a>
                 </td>
             </tr>
