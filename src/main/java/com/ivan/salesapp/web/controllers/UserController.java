@@ -16,7 +16,11 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 @Controller
 @RequestMapping("/users")
@@ -33,14 +37,14 @@ public class UserController extends BaseController{
     @GetMapping("/register")
     @PreAuthorize("isAnonymous()")
     public ModelAndView register(){
-        return super.view("register");
+        return super.view("user/register");
     }
 
     @PostMapping("/register")
     @PreAuthorize("isAnonymous()")
     public ModelAndView registerConfirm(@ModelAttribute UserRegisterBindingModel model){
         if (!model.getPassword().equals(model.getConfirmPassword())){
-            return super.view("register");
+            return super.view("user/register");
         }
         this.IUserService.registerUser(this.modelMapper.map(model, UserServiceModel.class));
 
@@ -50,7 +54,7 @@ public class UserController extends BaseController{
     @GetMapping("/login")
     @PreAuthorize("isAnonymous()")
     public ModelAndView login(){
-        return super.view("/login");
+        return super.view("user/login");
     }
 
     @GetMapping("/profile")
@@ -58,7 +62,7 @@ public class UserController extends BaseController{
     public ModelAndView profile(Principal principal, ModelAndView modelAndView){
         modelAndView.addObject("model", this.modelMapper
                 .map(this.IUserService.findUserByUsername(principal.getName()), UserProfileViewModel.class));
-        return super.view("profile", modelAndView);
+        return super.view("user/profile", modelAndView);
     }
 
     @GetMapping("/edit")
@@ -66,14 +70,14 @@ public class UserController extends BaseController{
     public ModelAndView editProfile(Principal principal, ModelAndView modelAndView){
         modelAndView.addObject("model", this.modelMapper
                 .map(this.IUserService.findUserByUsername(principal.getName()), UserProfileViewModel.class));
-        return super.view("edit-profile", modelAndView);
+        return super.view("user/edit-profile", modelAndView);
     }
 
     @PatchMapping("/edit")
     @PreAuthorize("isAuthenticated()")
     public ModelAndView editProfileConfirm(@ModelAttribute UserEditBindingModel model){
         if(!model.getPassword().equals(model.getConfirmPassword())){
-            return super.view("edit-profile");
+            return super.view("user/edit-profile");
         }
         this.IUserService.editUserProfile(this.modelMapper.map(model, UserServiceModel.class), model.getOldPassword());
         return super.redirect("/users/profile");
@@ -84,16 +88,12 @@ public class UserController extends BaseController{
     public ModelAndView allUsers(ModelAndView modelAndView){
         List<UserAllViewModel> users = this.IUserService.findAllUsers()
                 .stream()
-                .map(u -> {
-                    UserAllViewModel user = this.modelMapper.map(u, UserAllViewModel.class);
-                    user.setAuthorities(u.getAuthorities().stream().map(RoleServiceModel::getAuthority).collect(Collectors.toSet()));
-                    return user;
-                })
-                .collect(Collectors.toList());
+                .map(mapToViewModelSetCategories(this.modelMapper))
+                .collect(toList());
 
         modelAndView.addObject("users", users);
 
-        return super.view("all-users", modelAndView);
+        return super.view("user/all-users", modelAndView);
     }
 
     @PostMapping("/set-user/{id}")
@@ -118,5 +118,13 @@ public class UserController extends BaseController{
         this.IUserService.setUserRole(id, "admin");
 
         return super.redirect("/users/all");
+    }
+
+    private static Function<UserServiceModel, UserAllViewModel> mapToViewModelSetCategories(ModelMapper modelMapper){
+        return u -> {
+            UserAllViewModel user = modelMapper.map(u, UserAllViewModel.class);
+            user.setAuthorities(u.getAuthorities().stream().map(RoleServiceModel::getAuthority).collect(toSet()));
+            return user;
+        };
     }
 }

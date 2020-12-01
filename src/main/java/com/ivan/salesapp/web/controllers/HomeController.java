@@ -1,38 +1,74 @@
 package com.ivan.salesapp.web.controllers;
 
-import com.ivan.salesapp.domain.models.view.UserProfileViewModel;
+import com.ivan.salesapp.domain.models.view.CategoryViewModel;
+import com.ivan.salesapp.services.ICategoryService;
 import com.ivan.salesapp.services.IUserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.security.Principal;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Controller
 public class HomeController extends BaseController{
-    private final IUserService IUserService;
+    private final ICategoryService iCategoryService;
     private final ModelMapper modelMapper;
 
     @Autowired
-    public HomeController(IUserService IUserService, ModelMapper modelMapper) {
-        this.IUserService = IUserService;
+    public HomeController(ICategoryService iCategoryService, ModelMapper modelMapper) {
+        this.iCategoryService = iCategoryService;
         this.modelMapper = modelMapper;
     }
 
-    @GetMapping("/")
-    @PreAuthorize("isAnonymous()")
-    public ModelAndView index(){
-        return super.view("index");
+    @RequestMapping(value = "/", method = RequestMethod.GET)
+    @ResponseBody
+    public ModelAndView index(ModelAndView modelAndView){
+        List<CategoryViewModel> categories = this.iCategoryService.findAllCategories()
+                .stream()
+                .map(category -> this.modelMapper.map(category, CategoryViewModel.class))
+                .collect(toList());
+
+        modelAndView.addObject("categories", categories);
+
+        if (checkIfAuthenticated()){
+            return super.view("home", modelAndView);
+        }
+
+        return super.view("index", modelAndView);
     }
 
     @GetMapping("/home")
     @PreAuthorize("isAuthenticated()")
-    public ModelAndView home(Principal principal, ModelAndView modelAndView){
-        modelAndView.addObject("model", this.modelMapper
-                .map(this.IUserService.findUserByUsername(principal.getName()), UserProfileViewModel.class));
+    public ModelAndView home(ModelAndView modelAndView){
+        List<CategoryViewModel> categories = this.iCategoryService.findAllCategories()
+                .stream()
+                .map(category -> this.modelMapper.map(category, CategoryViewModel.class))
+                .collect(toList());
+
+        modelAndView.addObject("categories", categories);
+
         return super.view("home", modelAndView);
+    }
+
+    private static Authentication getAuthentication(){
+        return SecurityContextHolder.getContext().getAuthentication();
+    }
+
+    private static boolean checkIfAuthenticated(){
+        return getAuthentication() != null &&
+                getAuthentication().isAuthenticated();
     }
 }

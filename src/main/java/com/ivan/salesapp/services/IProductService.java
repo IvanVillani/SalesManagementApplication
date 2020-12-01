@@ -12,7 +12,9 @@ public interface IProductService {
 
     ProductServiceModel findProductById(String id);
 
-    ProductServiceModel editProduct(String id, ProductServiceModel productServiceModel);
+    ProductServiceModel editProduct(String id, ProductServiceModel productServiceModel, List<String> categories);
 
     void deleteProduct(String id);
+
+    List<ProductServiceModel> findAllByCategory(String category);
 }

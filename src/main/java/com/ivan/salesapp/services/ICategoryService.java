@@ -13,5 +13,5 @@ public interface ICategoryService {
 
     CategoryServiceModel editCategory(String id, CategoryServiceModel categoryServiceModel);
 
-    void deleteCategory(String id);
+    void deleteCategory(String id, IProductService iProductService);
 }
