@@ -13,7 +13,8 @@ import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 public class OrderService implements IOrderService {
@@ -51,21 +52,22 @@ public class OrderService implements IOrderService {
         return orders
                 .stream()
                 .map(o -> this.modelMapper.map(o, OrderServiceModel.class))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     @Override
     public List<OrderServiceModel> findOrdersByCustomer(String username) {
-        return this.orderRepository.findAllOrdersByCustomer_UsernameOrderByRegisterDate(username)
+        return this.orderRepository.findAllOrdersByCustomerUsernameOrderByRegisterDate(username)
                 .stream()
                 .map(o -> modelMapper.map(o, OrderServiceModel.class))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     @Override
     public OrderServiceModel findOrderById(String id) {
         return this.orderRepository.findById(id)
                 .map(o -> this.modelMapper.map(o, OrderServiceModel.class))
-                .orElseThrow(() -> new IllegalArgumentException("No such order!"));
+                .orElseThrow(() ->
+                        new IllegalArgumentException(String.format("No such order with id:%s!", id)));
     }
 }

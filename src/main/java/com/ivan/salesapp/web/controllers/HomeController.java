@@ -20,6 +20,8 @@ import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
+
 @Controller
 public class HomeController extends BaseController{
     private final ICategoryService iCategoryService;
@@ -37,12 +39,11 @@ public class HomeController extends BaseController{
         List<CategoryViewModel> categories = this.iCategoryService.findAllCategories()
                 .stream()
                 .map(category -> this.modelMapper.map(category, CategoryViewModel.class))
-                .collect(Collectors.toList());
+                .collect(toList());
 
         modelAndView.addObject("categories", categories);
 
-        if (SecurityContextHolder.getContext().getAuthentication() != null &&
-                SecurityContextHolder.getContext().getAuthentication().isAuthenticated()){
+        if (checkIfAuthenticated()){
             return super.view("home", modelAndView);
         }
 
@@ -55,10 +56,19 @@ public class HomeController extends BaseController{
         List<CategoryViewModel> categories = this.iCategoryService.findAllCategories()
                 .stream()
                 .map(category -> this.modelMapper.map(category, CategoryViewModel.class))
-                .collect(Collectors.toList());
+                .collect(toList());
 
         modelAndView.addObject("categories", categories);
 
         return super.view("home", modelAndView);
+    }
+
+    private static Authentication getAuthentication(){
+        return SecurityContextHolder.getContext().getAuthentication();
+    }
+
+    private static boolean checkIfAuthenticated(){
+        return getAuthentication() != null &&
+                getAuthentication().isAuthenticated();
     }
 }

@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
+
 @Controller
 @RequestMapping("/products")
 public class ProductController extends BaseController {
@@ -52,7 +54,7 @@ public class ProductController extends BaseController {
         productServiceModel.setCategories(
                 this.iCategoryService.findAllCategories().stream()
                         .filter(c -> model.getCategories().contains(c.getId()))
-                        .collect(Collectors.toList())
+                        .collect(toList())
         );
 
         productServiceModel.setImageUrl(this.iCloudinaryService.uploadImage(model.getImage()));
@@ -68,7 +70,7 @@ public class ProductController extends BaseController {
         modelAndView.addObject("products", this.iProductService.findAllProducts()
                 .stream().map(p ->
                         this.modelMapper.map(p, ProductAllViewModel.class))
-                .collect(Collectors.toList()));
+                .collect(toList()));
 
         return super.view("product/all-products", modelAndView);
     }
@@ -89,7 +91,9 @@ public class ProductController extends BaseController {
         ProductAddBindingModel model = this.modelMapper.map(productServiceModel, ProductAddBindingModel.class);
 
         model.setCategories(productServiceModel.getCategories()
-                .stream().map(BaseServiceModel::getId).collect(Collectors.toList()));
+                .stream()
+                .map(BaseServiceModel::getId)
+                .collect(toList()));
 
         modelAndView.addObject("product", model);
         modelAndView.addObject("productId", id);
@@ -116,7 +120,9 @@ public class ProductController extends BaseController {
         ProductDeleteBindingModel model = this.modelMapper.map(productServiceModel, ProductDeleteBindingModel.class);
 
         model.setCategories(productServiceModel.getCategories()
-                .stream().map(CategoryServiceModel::getName).collect(Collectors.toList()));
+                .stream()
+                .map(CategoryServiceModel::getName)
+                .collect(toList()));
 
         modelAndView.addObject("product", model);
         modelAndView.addObject("categories", model);
@@ -140,12 +146,12 @@ public class ProductController extends BaseController {
             return this.iProductService.findAllProducts()
                     .stream()
                     .map(product -> this.modelMapper.map(product, ProductAllViewModel.class))
-                    .collect(Collectors.toList());
+                    .collect(toList());
         }
 
         return this.iProductService.findAllByCategory(category)
                 .stream()
                 .map(product -> this.modelMapper.map(product, ProductAllViewModel.class))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 }

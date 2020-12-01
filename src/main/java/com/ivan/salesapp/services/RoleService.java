@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toSet;
+
 @Service
 public class RoleService implements IRoleService {
     private final RoleRepository roleRepository;
@@ -48,7 +50,7 @@ public class RoleService implements IRoleService {
         return this.roleRepository.findAll()
                 .stream()
                 .map(r -> this.modelMapper.map(r, RoleServiceModel.class))
-                .collect(Collectors.toSet());
+                .collect(toSet());
     }
 
     @Override

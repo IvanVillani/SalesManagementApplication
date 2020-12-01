@@ -14,6 +14,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
+
 @Service
 public class UserService implements IUserService {
     private final UserRepository userRepository;
@@ -81,7 +83,7 @@ public class UserService implements IUserService {
     public List<UserServiceModel> findAllUsers() {
         return this.userRepository.findAll().stream()
                 .map(u -> this.modelMapper
-                        .map(u, UserServiceModel.class)).collect(Collectors.toList());
+                        .map(u, UserServiceModel.class)).collect(toList());
     }
 
     @Override

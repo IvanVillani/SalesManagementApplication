@@ -15,9 +15,11 @@ import org.springframework.web.servlet.ModelAndView;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
+
 @Controller
 @RequestMapping("/categories")
-public class CategoryController extends BaseController{
+public class CategoryController extends BaseController {
     private final ICategoryService iCategoryService;
     private final IProductService iProductService;
     private final ModelMapper modelMapper;
@@ -31,13 +33,13 @@ public class CategoryController extends BaseController{
 
     @GetMapping("/add")
     @PreAuthorize("hasRole('ROLE_MODERATOR')")
-    public ModelAndView addCategory(){
+    public ModelAndView addCategory() {
         return super.view("category/add-category");
     }
 
     @PostMapping("/add")
     @PreAuthorize("hasRole('ROLE_MODERATOR')")
-    public ModelAndView addCategoryConfirm(@ModelAttribute CategoryAddBindingModel model){
+    public ModelAndView addCategoryConfirm(@ModelAttribute CategoryAddBindingModel model) {
         this.iCategoryService.addCategory(this.modelMapper.map(model, CategoryServiceModel.class));
 
         return super.redirect("/categories/all");
@@ -45,19 +47,19 @@ public class CategoryController extends BaseController{
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ROLE_MODERATOR')")
-    public ModelAndView allCategories(ModelAndView modelAndView){
+    public ModelAndView allCategories(ModelAndView modelAndView) {
         modelAndView.addObject("categories",
-                this.iCategoryService.findAllCategories().stream()
-                        .map(c -> this.modelMapper
-                                .map(c, CategoryViewModel.class))
-                        .collect(Collectors.toList()));
+                this.iCategoryService.findAllCategories()
+                        .stream()
+                        .map(c -> this.modelMapper.map(c, CategoryViewModel.class))
+                        .collect(toList()));
 
         return super.view("/category/all-categories", modelAndView);
     }
 
     @GetMapping("/edit/{id}")
     @PreAuthorize("hasRole('ROLE_MODERATOR')")
-    public ModelAndView editCategory(@PathVariable String  id, ModelAndView modelAndView){
+    public ModelAndView editCategory(@PathVariable String id, ModelAndView modelAndView) {
         modelAndView.addObject("model", this.modelMapper
                 .map(this.iCategoryService.findCategoryById(id), CategoryViewModel.class));
 
@@ -66,7 +68,7 @@ public class CategoryController extends BaseController{
 
     @PostMapping("/edit/{id}")
     @PreAuthorize("hasRole('ROLE_MODERATOR')")
-    public ModelAndView editCategoryConfirm(@PathVariable String id, @ModelAttribute CategoryAddBindingModel model){
+    public ModelAndView editCategoryConfirm(@PathVariable String id, @ModelAttribute CategoryAddBindingModel model) {
         this.iCategoryService.editCategory(id, this.modelMapper.map(model, CategoryServiceModel.class));
 
         return super.redirect("/categories/all");
@@ -74,7 +76,7 @@ public class CategoryController extends BaseController{
 
     @GetMapping("/delete/{id}")
     @PreAuthorize("hasRole('ROLE_MODERATOR')")
-    public ModelAndView deleteCategory(@PathVariable String  id, ModelAndView modelAndView){
+    public ModelAndView deleteCategory(@PathVariable String id, ModelAndView modelAndView) {
         modelAndView.addObject("model", this.modelMapper
                 .map(this.iCategoryService.findCategoryById(id), CategoryViewModel.class));
 
@@ -83,7 +85,7 @@ public class CategoryController extends BaseController{
 
     @PostMapping("/delete/{id}")
     @PreAuthorize("hasRole('ROLE_MODERATOR')")
-    public ModelAndView deleteCategoryConfirm(@PathVariable String id){
+    public ModelAndView deleteCategoryConfirm(@PathVariable String id) {
         this.iCategoryService.deleteCategory(id, this.iProductService);
 
         return super.redirect("/categories/all");
@@ -92,10 +94,10 @@ public class CategoryController extends BaseController{
     @GetMapping("/fetch")
     @PreAuthorize("hasRole('ROLE_MODERATOR')")
     @ResponseBody
-    public List<CategoryViewModel> fetchCategories(){
-        return this.iCategoryService.findAllCategories().stream()
-                .map(c -> this.modelMapper
-                .map(c, CategoryViewModel.class))
-                .collect(Collectors.toList());
+    public List<CategoryViewModel> fetchCategories() {
+        return this.iCategoryService.findAllCategories()
+                .stream()
+                .map(c -> this.modelMapper.map(c, CategoryViewModel.class))
+                .collect(toList());
     }
 }

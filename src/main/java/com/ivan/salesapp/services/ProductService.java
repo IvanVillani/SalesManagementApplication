@@ -9,7 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 public class ProductService implements IProductService {
@@ -35,7 +39,7 @@ public class ProductService implements IProductService {
     public List<ProductServiceModel> findAllProducts() {
         return this.productRepository.findAll().stream()
                 .map(p -> this.modelMapper
-                        .map(p, ProductServiceModel.class)).collect(Collectors.toList());
+                        .map(p, ProductServiceModel.class)).collect(toList());
     }
 
     @Override
@@ -55,13 +59,13 @@ public class ProductService implements IProductService {
         product.setDescription(productServiceModel.getDescription());
         product.setPrice(productServiceModel.getPrice());
 
-        product.setCategories(
-                this.iCategoryService.findAllCategories()
-                        .stream()
-                        .filter(c -> categories.contains(c.getId()))
-                        .map(c -> this.modelMapper.map(c, Category.class))
-                        .collect(Collectors.toList())
-        );
+        List<Category> newCategories = this.iCategoryService.findAllCategories()
+                .stream()
+                .filter(c -> categories.contains(c.getId()))
+                .map(c -> this.modelMapper.map(c, Category.class))
+                .collect(toList());
+
+        product.setCategories(newCategories);
 
 
         return this.modelMapper.map(this.productRepository.saveAndFlush(product), ProductServiceModel.class);
@@ -79,8 +83,14 @@ public class ProductService implements IProductService {
     public List<ProductServiceModel> findAllByCategory(String category) {
         return this.productRepository.findAll()
                 .stream()
-                .filter(product -> product.getCategories().stream().anyMatch(categoryStream -> categoryStream.getName().equals(category)))
+                .filter(filterProductStreamByMatchingCategoryName(category))
                 .map(product -> this.modelMapper.map(product, ProductServiceModel.class))
-                .collect(Collectors.toList());
+                .collect(toList());
+    }
+
+    private static Predicate<Product> filterProductStreamByMatchingCategoryName(String category){
+        return product -> product.getCategories()
+                .stream()
+                .anyMatch(categoryStream -> categoryStream.getName().equals(category));
     }
 }

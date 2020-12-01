@@ -16,7 +16,11 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 @Controller
 @RequestMapping("/users")
@@ -84,12 +88,8 @@ public class UserController extends BaseController{
     public ModelAndView allUsers(ModelAndView modelAndView){
         List<UserAllViewModel> users = this.IUserService.findAllUsers()
                 .stream()
-                .map(u -> {
-                    UserAllViewModel user = this.modelMapper.map(u, UserAllViewModel.class);
-                    user.setAuthorities(u.getAuthorities().stream().map(RoleServiceModel::getAuthority).collect(Collectors.toSet()));
-                    return user;
-                })
-                .collect(Collectors.toList());
+                .map(mapToViewModelSetCategories(this.modelMapper))
+                .collect(toList());
 
         modelAndView.addObject("users", users);
 
@@ -118,5 +118,13 @@ public class UserController extends BaseController{
         this.IUserService.setUserRole(id, "admin");
 
         return super.redirect("/users/all");
+    }
+
+    private static Function<UserServiceModel, UserAllViewModel> mapToViewModelSetCategories(ModelMapper modelMapper){
+        return u -> {
+            UserAllViewModel user = modelMapper.map(u, UserAllViewModel.class);
+            user.setAuthorities(u.getAuthorities().stream().map(RoleServiceModel::getAuthority).collect(toSet()));
+            return user;
+        };
     }
 }

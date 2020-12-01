@@ -15,6 +15,8 @@ import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
+
 @Controller
 @RequestMapping("/orders")
 public class OrderController extends BaseController {
@@ -33,7 +35,7 @@ public class OrderController extends BaseController {
         List<OrderViewModel> orderViewModels = iOrderService.findAllOrders()
                 .stream()
                 .map(o -> mapper.map(o, OrderViewModel.class))
-                .collect(Collectors.toList());
+                .collect(toList());
 
         modelAndView.addObject("orders", orderViewModels);
 
@@ -55,7 +57,7 @@ public class OrderController extends BaseController {
         List<OrderViewModel> orderViewModels = iOrderService.findOrdersByCustomer(principal.getName())
                 .stream()
                 .map(o -> mapper.map(o, OrderViewModel.class))
-                .collect(Collectors.toList());
+                .collect(toList());
 
         modelAndView.addObject("orders", orderViewModels);
 

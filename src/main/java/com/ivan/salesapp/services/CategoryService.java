@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
+
 @Service
 public class CategoryService implements ICategoryService {
     private final CategoryRepository categoryRepository;
@@ -31,7 +33,7 @@ public class CategoryService implements ICategoryService {
     @Override
     public List<CategoryServiceModel> findAllCategories() {
         return this.categoryRepository.findAll().stream()
-                .map(c -> this.modelMapper.map(c, CategoryServiceModel.class)).collect(Collectors.toList());
+                .map(c -> this.modelMapper.map(c, CategoryServiceModel.class)).collect(toList());
     }
 
     @Override
@@ -58,8 +60,10 @@ public class CategoryService implements ICategoryService {
         Category category = this.categoryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Incorrect id!"));
 
-        if (iProductService.findAllByCategory(category.getName()).size() != 0){
-            throw new IllegalArgumentException("There are products in this category!");
+        int allProductsByCategory = iProductService.findAllByCategory(category.getName()).size();
+
+        if (allProductsByCategory != 0){
+            throw new IllegalArgumentException("There are no products in this category!");
         }
 
         this.categoryRepository.delete(category);
