@@ -1,6 +1,5 @@
 package com.ivan.salesapp.domain.entities;
 
-import org.joda.time.DateTime;
 
 import javax.persistence.*;
 import java.math.BigDecimal;

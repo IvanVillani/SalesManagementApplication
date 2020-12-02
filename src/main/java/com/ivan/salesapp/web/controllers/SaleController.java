@@ -5,15 +5,15 @@ import com.ivan.salesapp.services.ISaleService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.security.Principal;
 import java.util.stream.Collectors;
 
-@Controller
+@RestController
 @RequestMapping("/sales")
 public class SaleController extends BaseController{
     private final ISaleService ISaleService;

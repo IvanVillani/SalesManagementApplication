@@ -1,6 +1,7 @@
 package com.ivan.salesapp.services;
 
 import com.ivan.salesapp.domain.models.service.UserServiceModel;
+import com.ivan.salesapp.domain.models.view.UserAllViewModel;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.List;
@@ -14,6 +15,12 @@ public interface IUserService extends UserDetailsService {
 
     List<UserServiceModel> findAllUsers();
 
+    UserServiceModel findUserById(String id);
+
+    void deleteUserById(String id);
+
     void setUserRole(String id, String role);
+
+    List<UserAllViewModel> getUsersBasedOnAuthority(String authority);
 
 }

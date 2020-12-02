@@ -1,7 +1,9 @@
 package com.ivan.salesapp.services;
 
 import com.ivan.salesapp.domain.entities.User;
+import com.ivan.salesapp.domain.models.service.RoleServiceModel;
 import com.ivan.salesapp.domain.models.service.UserServiceModel;
+import com.ivan.salesapp.domain.models.view.UserAllViewModel;
 import com.ivan.salesapp.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,36 +12,40 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 @Service
 public class UserService implements IUserService {
     private final UserRepository userRepository;
-    private final IRoleService IRoleService;
+    private final IDiscountService iDiscountService;
+    private final IRoleService iRoleService;
     private final ModelMapper modelMapper;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
-    public UserService(UserRepository userRepository, IRoleService IRoleService, ModelMapper modelMapper, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public UserService(UserRepository userRepository, IDiscountService iDiscountService, IRoleService iRoleService, ModelMapper modelMapper, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.userRepository = userRepository;
-        this.IRoleService = IRoleService;
+        this.iDiscountService = iDiscountService;
+        this.iRoleService = iRoleService;
         this.modelMapper = modelMapper;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
     @Override
     public UserServiceModel registerUser(UserServiceModel userServiceModel) {
-        this.IRoleService.seedRolesInDB();
+        this.iRoleService.seedRolesInDB();
         if (this.userRepository.count() == 0) {
-            userServiceModel.setAuthorities(this.IRoleService.findAllRoles());
+            userServiceModel.setAuthorities(this.iRoleService.findAllRoles());
         }else {
             userServiceModel.setAuthorities(new LinkedHashSet<>());
 
-            userServiceModel.getAuthorities().add(this.IRoleService.findByAuthority("ROLE_USER"));
+            userServiceModel.getAuthorities().add(this.iRoleService.findByAuthority("ROLE_USER"));
         }
 
         User user = this.modelMapper.map(userServiceModel, User.class);
@@ -80,10 +86,31 @@ public class UserService implements IUserService {
     }
 
     @Override
+    public void deleteUserById(String id) {
+        User user = this.userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("No such user!"));
+
+        if (new ArrayList<>(user.getAuthorities()).get(0).getAuthority().equals("ROLE_MODERATOR")){
+            this.iDiscountService.deleteDiscountsByUserId(id);
+        }
+
+        this.userRepository.delete(user);
+    }
+
+    @Override
     public List<UserServiceModel> findAllUsers() {
         return this.userRepository.findAll().stream()
                 .map(u -> this.modelMapper
                         .map(u, UserServiceModel.class)).collect(toList());
+    }
+
+    @Override
+    public UserServiceModel findUserById(String id) {
+        return this.userRepository.findAll()
+                .stream()
+                .filter(u -> id.equals(u.getId()))
+                .map(u -> this.modelMapper.map(u, UserServiceModel.class))
+                .collect(toList())
+                .get(0);
     }
 
     @Override
@@ -96,20 +123,57 @@ public class UserService implements IUserService {
         userServiceModel.getAuthorities().clear();
         switch (role){
             case "user":
-                userServiceModel.getAuthorities().add(this.IRoleService.findByAuthority("ROLE_USER"));
+                userServiceModel.getAuthorities().add(this.iRoleService.findByAuthority("ROLE_USER"));
                 break;
             case "moderator":
-                userServiceModel.getAuthorities().add(this.IRoleService.findByAuthority("ROLE_USER"));
-                userServiceModel.getAuthorities().add(this.IRoleService.findByAuthority("ROLE_MODERATOR"));
+                userServiceModel.getAuthorities().add(this.iRoleService.findByAuthority("ROLE_MODERATOR"));
                 break;
             case "admin":
-                userServiceModel.getAuthorities().add(this.IRoleService.findByAuthority("ROLE_USER"));
-                userServiceModel.getAuthorities().add(this.IRoleService.findByAuthority("ROLE_MODERATOR"));
-                userServiceModel.getAuthorities().add(this.IRoleService.findByAuthority("ROLE_ADMIN"));
+                userServiceModel.getAuthorities().add(this.iRoleService.findByAuthority("ROLE_ADMIN"));
                 break;
         }
 
         this.userRepository.saveAndFlush(this.modelMapper.map(userServiceModel, User.class));
     }
 
+    @Override
+    public List<UserAllViewModel> getUsersBasedOnAuthority(String authority) {
+        if ("ROLE_MODERATOR".equals(authority)){
+            return this.findAllUsers()
+                    .stream()
+                    .filter(u -> new ArrayList<>(u.getAuthorities()).get(0).getAuthority().equals("ROLE_USER"))
+                    .map(mapToViewModelSetCategories(this.modelMapper))
+                    .collect(toList());
+        }else if ("ROLE_ADMIN".equals(authority)){
+            return this.findAllUsers()
+                    .stream()
+                    .filter(u -> new ArrayList<>(u.getAuthorities()).get(0).getAuthority().equals("ROLE_MODERATOR"))
+                    .map(mapToViewModelSetCategories(this.modelMapper))
+                    .collect(toList());
+        }else if ("ROLE_ROOT".equals(authority)){
+            return this.findAllUsers()
+                    .stream()
+                    .map(mapToViewModelSetCategories(this.modelMapper))
+                    .collect(toList());
+        }else{
+            return null;
+        }
+    }
+
+    private static Function<UserServiceModel, UserAllViewModel> mapToViewModelSetCategories(ModelMapper modelMapper) {
+        return u -> {
+            UserAllViewModel user = modelMapper.map(u, UserAllViewModel.class);
+            if (u.getAuthorities().size() > 1) {
+                user.setAuthorities(new LinkedHashSet<>());
+                user.getAuthorities().add("ROOT");
+            } else {
+                user.setAuthorities(u.getAuthorities()
+                        .stream()
+                        .map(RoleServiceModel::getAuthority)
+                        .map(s -> s.substring(5))
+                        .collect(toSet()));
+            }
+            return user;
+        };
+    }
 }

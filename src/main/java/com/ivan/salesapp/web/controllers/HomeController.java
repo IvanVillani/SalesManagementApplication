@@ -2,27 +2,19 @@ package com.ivan.salesapp.web.controllers;
 
 import com.ivan.salesapp.domain.models.view.CategoryViewModel;
 import com.ivan.salesapp.services.ICategoryService;
-import com.ivan.salesapp.services.IUserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.security.Principal;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
-@Controller
+@RestController
 public class HomeController extends BaseController{
     private final ICategoryService iCategoryService;
     private final ModelMapper modelMapper;

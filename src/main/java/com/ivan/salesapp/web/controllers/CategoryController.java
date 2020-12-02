@@ -8,16 +8,14 @@ import com.ivan.salesapp.services.IProductService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
-@Controller
+@RestController
 @RequestMapping("/categories")
 public class CategoryController extends BaseController {
     private final ICategoryService iCategoryService;

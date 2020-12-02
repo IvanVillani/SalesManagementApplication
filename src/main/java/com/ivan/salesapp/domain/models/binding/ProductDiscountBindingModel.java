@@ -1,10 +1,11 @@
-package com.ivan.salesapp.domain.models.service;
+package com.ivan.salesapp.domain.models.binding;
 
+import com.ivan.salesapp.domain.models.service.CategoryServiceModel;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-public class ProductServiceModel extends BaseServiceModel{
+public class ProductDiscountBindingModel {
     private String name;
     private String description;
     private BigDecimal price;
@@ -13,7 +14,7 @@ public class ProductServiceModel extends BaseServiceModel{
     private List<CategoryServiceModel> categories;
     private BigDecimal discountedPrice;
 
-    public ProductServiceModel() {
+    public ProductDiscountBindingModel() {
     }
 
     public String getName() {

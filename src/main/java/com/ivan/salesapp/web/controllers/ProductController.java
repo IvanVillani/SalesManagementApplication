@@ -12,17 +12,15 @@ import com.ivan.salesapp.services.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
-@Controller
+@RestController
 @RequestMapping("/products")
 public class ProductController extends BaseController {
     private final IProductService iProductService;
@@ -68,15 +66,14 @@ public class ProductController extends BaseController {
     @PreAuthorize("hasRole('ROLE_MODERATOR')")
     public ModelAndView allProducts(ModelAndView modelAndView) throws IOException {
         modelAndView.addObject("products", this.iProductService.findAllProducts()
-                .stream().map(p ->
-                        this.modelMapper.map(p, ProductAllViewModel.class))
+                .stream()
+                .map(p -> this.modelMapper.map(p, ProductAllViewModel.class))
                 .collect(toList()));
 
         return super.view("product/all-products", modelAndView);
     }
 
     @GetMapping("/details/{id}")
-    @PreAuthorize("isAuthenticated()")
     public ModelAndView detailsProduct(@PathVariable String id, ModelAndView modelAndView) {
         modelAndView.addObject("product", this.modelMapper
                 .map(this.iProductService.findProductById(id), ProductDetailsViewModel.class));

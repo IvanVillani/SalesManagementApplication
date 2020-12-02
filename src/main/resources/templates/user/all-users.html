@@ -9,7 +9,15 @@
     <th:block th:include="~{fragments/navbar}"></th:block>
 </header>
 <main class="mt-3">
-    <h1 class="text-center text-dark">All Users</h1>
+    <th:block sec:authorize="hasRole('ROLE_MODERATOR')">
+        <h1 class="text-center text-dark">All Clients</h1>
+    </th:block>
+    <th:block sec:authorize="hasRole('ROLE_ADMIN')">
+        <h1 class="text-center text-dark">All Sales Representatives</h1>
+    </th:block>
+    <th:block sec:authorize="hasRole('ROLE_ROOT')">
+        <h1 class="text-center text-dark">All Administrators</h1>
+    </th:block>
     <hr class="hr-2 bg-dark w-75">
     <table class="table table-hover w-75 mx-auto">
         <thead>
@@ -31,47 +39,53 @@
                 <td class="col-md-3 text-center">
 
                     <div class="row">
-                        <th:block th:if="${#lists.contains(user.authorities, 'ROLE_USER') &&
-                        !#lists.contains(user.authorities, 'ROLE_MODERATOR') &&
-                        !#lists.contains(user.authorities, 'ROLE_ADMIN')}">
+                        <th:block th:if="${#lists.contains(user.authorities, 'USER') &&
+                        !#lists.contains(user.authorities, 'ROOT')}">
                             <form th:action="@{/users/set-moderator/{id}(id=${user.id})}" method="post">
                                 <input type="hidden" name="_csrf"
                                        value="80417983-fe8b-45c7-963e-31f6915a1560">
-                                <button class="btn btn-dark">MODERATOR</button>
+                                <button class="btn btn-secondary">MODERATOR</button>
+                            </form>
+                            <form th:action="@{/users/delete-user{id}(id=${user.id})}" method="post">
+                                <input type="hidden" name="_csrf"
+                                       value="80417983-fe8b-45c7-963e-31f6915a1560">
+                                <button class="btn btn-danger">REMOVE</button>
+                            </form>
+                        </th:block>
+                        <th:block th:if="${#lists.contains(user.authorities, 'MODERATOR') &&
+                        !#lists.contains(user.authorities, 'ROOT')}">
+                            <form th:action="@{/users/set-user/{id}(id=${user.id})}" method="post">
+                                <input type="hidden" name="_csrf"
+                                       value="80417983-fe8b-45c7-963e-31f6915a1560">
+                                <button class="btn btn-outline-secondary">USER</button>
                             </form>
                             <form th:action="@{/users/set-admin/{id}(id=${user.id})}" method="post">
                                 <input type="hidden" name="_csrf"
                                        value="80417983-fe8b-45c7-963e-31f6915a1560">
                                 <button class="btn btn-dark">ADMIN</button>
                             </form>
+                            <form th:action="@{/users/delete-user{id}(id=${user.id})}" method="post">
+                                <input type="hidden" name="_csrf"
+                                       value="80417983-fe8b-45c7-963e-31f6915a1560">
+                                <button class="btn btn-danger">REMOVE</button>
+                            </form>
                         </th:block>
-                        <th:block th:if="${#lists.contains(user.authorities, 'ROLE_USER') &&
-                        #lists.contains(user.authorities, 'ROLE_MODERATOR') &&
-                        !#lists.contains(user.authorities, 'ROLE_ADMIN')}">
+                        <th:block th:if="${#lists.contains(user.authorities, 'ADMIN') &&
+                        !#lists.contains(user.authorities, 'ROOT')}">
                             <form th:action="@{/users/set-user/{id}(id=${user.id})}" method="post">
                                 <input type="hidden" name="_csrf"
                                        value="80417983-fe8b-45c7-963e-31f6915a1560">
-                                <button class="btn btn-dark">USER</button>
-                            </form>
-                            <form th:action="@{/users/set-admin/{id}(id=${user.id})}" method="post">
-                                <input type="hidden" name="_csrf"
-                                       value="80417983-fe8b-45c7-963e-31f6915a1560">
-                                <button class="btn btn-dark">ADMIN</button>
-                            </form>
-                        </th:block>
-                        <th:block th:if="${#lists.contains(user.authorities, 'ROLE_USER') &&
-                        #lists.contains(user.authorities, 'ROLE_MODERATOR') &&
-                        #lists.contains(user.authorities, 'ROLE_ADMIN') &&
-                        !#lists.contains(user.authorities, 'ROLE_ROOT')}">
-                            <form th:action="@{/users/set-user/{id}(id=${user.id})}" method="post">
-                                <input type="hidden" name="_csrf"
-                                       value="80417983-fe8b-45c7-963e-31f6915a1560">
-                                <button class="btn btn-dark">USER</button>
+                                <button class="btn btn-outline-secondary">USER</button>
                             </form>
                             <form th:action="@{/users/set-moderator/{id}(id=${user.id})}" method="post">
                                 <input type="hidden" name="_csrf"
                                        value="80417983-fe8b-45c7-963e-31f6915a1560">
-                                <button class="btn btn-dark">MODERATOR</button>
+                                <button class="btn btn-secondary">MODERATOR</button>
+                            </form>
+                            <form th:action="@{/users/delete-user{id}(id=${user.id})}" method="post">
+                                <input type="hidden" name="_csrf"
+                                       value="80417983-fe8b-45c7-963e-31f6915a1560">
+                                <button class="btn btn-danger">REMOVE</button>
                             </form>
                         </th:block>
                     </div>
