@@ -2,7 +2,6 @@ package com.ivan.salesapp.web.controllers;
 
 import com.ivan.salesapp.domain.models.binding.UserEditBindingModel;
 import com.ivan.salesapp.domain.models.binding.UserRegisterBindingModel;
-import com.ivan.salesapp.domain.models.service.RoleServiceModel;
 import com.ivan.salesapp.domain.models.service.UserServiceModel;
 import com.ivan.salesapp.domain.models.view.UserAllViewModel;
 import com.ivan.salesapp.domain.models.view.UserProfileViewModel;
@@ -15,12 +14,8 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.function.Function;
-
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/users")
@@ -57,6 +52,14 @@ public class UserController extends BaseController {
         return super.view("user/login");
     }
 
+    @GetMapping("/login/order{id}")
+    @PreAuthorize("isAnonymous()")
+    public ModelAndView login(@PathVariable String id, ModelAndView modelAndView) {
+        modelAndView.addObject("productId", id);
+
+        return super.view("user/login", modelAndView);
+    }
+
     @GetMapping("/profile")
     @PreAuthorize("isAuthenticated()")
     public ModelAndView profile(Principal principal, ModelAndView modelAndView) {
@@ -83,42 +86,91 @@ public class UserController extends BaseController {
         return super.redirect("/users/profile");
     }
 
-    @PostMapping("/delete-user{id}")
-    @PreAuthorize("isAuthenticated()")
-    public ModelAndView deleteUser(@PathVariable String id, ModelAndView modelAndView) {
+    @PostMapping("/delete-client{id}")
+    @PreAuthorize("hasRole('ROLE_RESELLER') || hasRole('ROLE_ADMIN')")
+    public ModelAndView deleteClient(@PathVariable String id) {
+        this.iUserService.deleteUserById(id);
+
+        return super.redirect("/users/all/clients");
+    }
+
+    @PostMapping("/delete-reseller{id}")
+    @PreAuthorize("hasRole('ROLE_Admin')")
+    public ModelAndView deleteReseller(@PathVariable String id) {
+        this.iUserService.deleteUserById(id);
+
+        return super.redirect("/users/all/resellers");
+    }
+
+    @PostMapping("/delete-admin{id}")
+    @PreAuthorize("hasRole('ROLE_ROOT')")
+    public ModelAndView deleteAdmin(@PathVariable String id) {
         this.iUserService.deleteUserById(id);
 
         return super.redirect("/users/all");
     }
 
-    @GetMapping("/all")
+    @PostMapping("/delete-me")
     @PreAuthorize("isAuthenticated()")
-    public ModelAndView allUsers(Principal principal, ModelAndView modelAndView) {
-        System.out.println(getAuthorityOfPrincipal(principal, iUserService));
-        List<UserAllViewModel> usersList = iUserService
-                .getUsersBasedOnAuthority(getAuthorityOfPrincipal(principal, iUserService));
+    public ModelAndView deleteCurrentProfile(Principal principal) {
+        this.iUserService.deleteUserByUsername(principal.getName());
 
-        if (usersList != null){
-            modelAndView.addObject("users", usersList);
-        }
+        return super.redirect("/");
+    }
+
+    @GetMapping("/all/clients")
+    @PreAuthorize("isAuthenticated()")
+    public ModelAndView allClients(ModelAndView modelAndView) {
+        List<UserAllViewModel> usersList = iUserService
+                .getUsersBasedOnAuthority("ROLE_CLIENT");
+
+        modelAndView.addObject("users", Objects.requireNonNullElseGet(usersList, ArrayList::new));
+
+        modelAndView.addObject("title", "Clients");
 
         return super.view("user/all-users", modelAndView);
     }
 
-    @PostMapping("/set-user/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ModelAndView setUser(@PathVariable String id) {
-        this.iUserService.setUserRole(id, "user");
+    @GetMapping("/all/resellers")
+    @PreAuthorize("isAuthenticated()")
+    public ModelAndView allResellers(ModelAndView modelAndView) {
+        List<UserAllViewModel> usersList = iUserService
+                .getUsersBasedOnAuthority("ROLE_RESELLER");
 
-        return super.redirect("/users/all");
+        modelAndView.addObject("users", Objects.requireNonNullElseGet(usersList, ArrayList::new));
+
+        modelAndView.addObject("title", "Resellers");
+
+        return super.view("user/all-users", modelAndView);
     }
 
-    @PostMapping("/set-moderator/{id}")
+    @GetMapping("/all")
+    @PreAuthorize("hasRole('ROLE_ROOT')")
+    public ModelAndView allUsers(ModelAndView modelAndView) {
+        List<UserAllViewModel> usersList = iUserService
+                .getUsersBasedOnAuthority(null);
+
+        modelAndView.addObject("users", Objects.requireNonNullElseGet(usersList, ArrayList::new));
+
+        modelAndView.addObject("title", "Users");
+
+        return super.view("user/all-users", modelAndView);
+    }
+
+    @PostMapping("/set-client/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN') || hasRole('ROLE_RESELLER')")
+    public ModelAndView setUser(@PathVariable String id) {
+        this.iUserService.setUserRole(id, "client");
+
+        return super.redirect("/users/all/clients");
+    }
+
+    @PostMapping("/set-reseller/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ModelAndView setModerator(@PathVariable String id) {
-        this.iUserService.setUserRole(id, "moderator");
+        this.iUserService.setUserRole(id, "reseller");
 
-        return super.redirect("/users/all");
+        return super.redirect("/users/all/resellers");
     }
 
     @PostMapping("/set-admin/{id}")
@@ -126,17 +178,6 @@ public class UserController extends BaseController {
     public ModelAndView setAdmin(@PathVariable String id) {
         this.iUserService.setUserRole(id, "admin");
 
-        return super.redirect("/users/all");
-    }
-
-    private static String getAuthorityOfPrincipal(Principal principal, IUserService iUserService) {
-        List<RoleServiceModel> authorities = new ArrayList<>(iUserService.findUserByUsername(principal.getName())
-                .getAuthorities());
-
-        if(authorities.size() > 1){
-            return "ROLE_ROOT";
-        }else{
-            return authorities.get(0).getAuthority();
-        }
+        return super.redirect("/users/all/resellers");
     }
 }

@@ -4,17 +4,18 @@ import java.io.Serializable;
 
 public class ShoppingCartItem implements Serializable {
 
-    private OrderProductViewModel product;
+    private DiscountProductViewModel product;
     private int quantity;
+    private int stockQuantity;
 
     public ShoppingCartItem() {
     }
 
-    public OrderProductViewModel getProduct() {
+    public DiscountProductViewModel getProduct() {
         return product;
     }
 
-    public void setProduct(OrderProductViewModel product) {
+    public void setProduct(DiscountProductViewModel product) {
         this.product = product;
     }
 
@@ -24,5 +25,13 @@ public class ShoppingCartItem implements Serializable {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
+    }
+
+    public int getStockQuantity() {
+        return stockQuantity;
+    }
+
+    public void setStockQuantity(int stockQuantity) {
+        this.stockQuantity = stockQuantity;
     }
 }

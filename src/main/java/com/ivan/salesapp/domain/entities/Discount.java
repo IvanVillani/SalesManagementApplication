@@ -47,4 +47,5 @@ public class Discount extends BaseEntity {
     public void setPrice(BigDecimal price) {
         this.price = price;
     }
+
 }

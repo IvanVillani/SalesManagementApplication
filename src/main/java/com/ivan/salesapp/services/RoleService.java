@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
 
@@ -26,24 +25,12 @@ public class RoleService implements IRoleService {
     @Override
     public void seedRolesInDB() {
         if (this.roleRepository.count() == 0){
-            this.roleRepository.saveAndFlush(new Role("ROLE_USER"));
-            this.roleRepository.saveAndFlush(new Role("ROLE_MODERATOR"));
+            this.roleRepository.saveAndFlush(new Role("ROLE_CLIENT"));
+            this.roleRepository.saveAndFlush(new Role("ROLE_RESELLER"));
             this.roleRepository.saveAndFlush(new Role("ROLE_ADMIN"));
             this.roleRepository.saveAndFlush(new Role("ROLE_ROOT"));
         }
     }
-
-//    @Override
-//    public void assignUserRoles(UserServiceModel  userServiceModel, long numberOfUsers) {
-//        if (numberOfUsers == 0){
-//            userServiceModel
-//                    .setAuthorities(this.roleRepository
-//                    .findAll()
-//                    .stream()
-//                    .map(r -> this.modelMapper.map(r, RoleServiceModel.class))
-//                    .collect(Collectors.toSet()));
-//        }
-//    }
 
     @Override
     public Set<RoleServiceModel> findAllRoles() {

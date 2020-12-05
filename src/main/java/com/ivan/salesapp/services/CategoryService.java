@@ -5,6 +5,7 @@ import com.ivan.salesapp.domain.models.service.CategoryServiceModel;
 import com.ivan.salesapp.repository.CategoryRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,10 +25,10 @@ public class CategoryService implements ICategoryService {
     }
 
     @Override
-    public CategoryServiceModel addCategory(CategoryServiceModel categoryServiceModel) {
+    public void addCategory(CategoryServiceModel categoryServiceModel) {
         Category category = this.modelMapper.map(categoryServiceModel, Category.class);
 
-        return this.modelMapper.map(this.categoryRepository.saveAndFlush(category), CategoryServiceModel.class);
+        this.categoryRepository.saveAndFlush(category);
     }
 
     @Override
@@ -45,14 +46,14 @@ public class CategoryService implements ICategoryService {
     }
 
     @Override
-    public CategoryServiceModel editCategory(String id, CategoryServiceModel categoryServiceModel) {
+    public void editCategory(String id, CategoryServiceModel categoryServiceModel) {
         Category category = this.categoryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Incorrect id!"));
 
         category.setName(categoryServiceModel.getName());
 
 
-        return this.modelMapper.map(this.categoryRepository.saveAndFlush(category), CategoryServiceModel.class);
+        this.categoryRepository.saveAndFlush(category);
     }
 
     @Override

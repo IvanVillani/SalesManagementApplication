@@ -10,6 +10,7 @@ import com.ivan.salesapp.domain.models.service.UserServiceModel;
 import com.ivan.salesapp.repository.DiscountRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +39,26 @@ public class DiscountService implements IDiscountService {
 
     @Override
     public List<DiscountServiceModel> findAllDiscounts() {
-        return this.discountRepository.findAll().stream()
+        return this.discountRepository.findAll()
+                .stream()
+                .map(o -> this.modelMapper.map(o, DiscountServiceModel.class))
+                .collect(toList());
+    }
+
+    @Override
+    public List<DiscountServiceModel> findAllDiscountsByCreatorUsername(String username) {
+        return this.discountRepository.findAll()
+                .stream()
+                .filter(d -> username.equals(d.getCreator().getUsername()))
+                .map(o -> this.modelMapper.map(o, DiscountServiceModel.class))
+                .collect(toList());
+    }
+
+    @Override
+    public List<DiscountServiceModel> findAllDiscountsByProductId(String id) {
+        return this.discountRepository.findAll()
+                .stream()
+                .filter(d -> id.equals(d.getProduct().getId()))
                 .map(o -> this.modelMapper.map(o, DiscountServiceModel.class))
                 .collect(toList());
     }
@@ -62,14 +82,13 @@ public class DiscountService implements IDiscountService {
     }
 
     @Override
-    public DiscountServiceModel editProductDiscount(DiscountServiceModel model) {
+    public void editProductDiscount(DiscountServiceModel model) {
         Discount discount = this.discountRepository.findById(model.getId())
                 .orElseThrow(() -> new IllegalArgumentException("No such discount!"));
 
         discount.setPrice(model.getPrice());
 
         this.discountRepository.saveAndFlush(discount);
-        return this.modelMapper.map(discount, DiscountServiceModel.class);
     }
 
     @Override

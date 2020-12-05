@@ -14,7 +14,7 @@
     <form id="add-category-form" class="form w-25 mx-auto" th:action="@{/discounts/add{id}(id=${product.id})}" th:method="post"><input type="hidden" name="_csrf" value="c686cd14-a7f9-4216-8009-c093b7d3df86">
         <div class="form-group">
             <label for="add-discount-price" class="font-weight-bold">Enter discounted price</label>
-            <input type="number" class="form-control text-center" id="add-discount-price" name="price">
+            <input type="number" class="form-control text-center" id="add-discount-price" name="price" required>
         </div>
         <hr class="hr-2 bg-dark">
         <div class="button-holder d-flex justify-content-center">

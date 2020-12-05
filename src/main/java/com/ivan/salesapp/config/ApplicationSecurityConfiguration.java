@@ -19,7 +19,7 @@ public class ApplicationSecurityConfiguration extends WebSecurityConfigurerAdapt
                 .authorizeRequests()
                 .antMatchers("/js/**", "/css/**").permitAll()
                 .antMatchers("/users/register", "/users/login").anonymous()
-                .antMatchers("/", "/products/fetch/**", "/products/details/**", "discounts/all").permitAll()
+                .antMatchers("/", "/products/fetch/**", "/products/details/**", "discounts/all", "/discounts/fetch/**", "/products/top-offers").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()
@@ -29,6 +29,6 @@ public class ApplicationSecurityConfiguration extends WebSecurityConfigurerAdapt
                 .defaultSuccessUrl("/home")
                 .and()
                 .logout()
-                .logoutSuccessUrl("/");
+                .logoutUrl("/logout");
     }
 }

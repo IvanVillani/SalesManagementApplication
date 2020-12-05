@@ -32,8 +32,10 @@
                 <td class="col-md-2 text-center" th:text="${product.stock}"></td>
                 <td class="col-md-3 text-center">
                     <a th:href="@{/products/details/{id}(id=${product.id})}" class="btn btn-outline-secondary font-weight-bold text-dark">Details</a>
-                    <a th:href="@{/products/edit/{id}(id=${product.id})}" class="btn btn-secondary font-weight-bold text-white">Edit</a>
-                    <a th:href="@{/products/delete/{id}(id=${product.id})}" class="btn btn-dark font-weight-bold text-white">Delete</a>
+                    <th:block sec:authorize="hasRole('ROLE_ADMIN')">
+                        <a th:href="@{/products/edit/{id}(id=${product.id})}" class="btn btn-secondary font-weight-bold text-white">Edit</a>
+                        <a th:href="@{/products/delete/{id}(id=${product.id})}" class="btn btn-dark font-weight-bold text-white">Delete</a>
+                    </th:block>
                 </td>
             </tr>
         </th:block>

@@ -40,7 +40,7 @@
     function formatProduct(product) {
         return '<div class="product">'
             + '<div class="text-center">'
-            + `<a href="/products/details/${product.id}"><img src="${product.imageUrl}" class="product-image-home img-thumbnail px-auto" alt="Image not loaded..."/></a>`
+            + `<a href="/products/details/${product.id}"><img src="${product.imageUrl}" class="product-image-home px-auto" width="350" height="350" alt="Image not loaded..."/></a>`
             + '</div>'
             + `<h5 class="text-center font-weight-bold mt-3">Name: ${product.name}</h5>`
             + '</div>'
@@ -49,7 +49,7 @@
     $(document).ready(function () {
         $('#allRadio').attr('checked', true);
 
-        fetch('http://localhost:8000/products/fetch/all')
+        fetch('/products/fetch/all')
             .then((response) => response.json())
             .then((json) => {
                 $('.products-data').empty();

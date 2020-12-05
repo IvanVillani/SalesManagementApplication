@@ -7,7 +7,7 @@ import java.util.List;
 public class OrderViewModel {
 
     private String id;
-    private List<OrderProductViewModel> products;
+    private List<DiscountProductViewModel> products;
     private UserProfileViewModel customer;
     private BigDecimal totalPrice;
     private LocalDateTime registerDate;
@@ -23,11 +23,11 @@ public class OrderViewModel {
         this.id = id;
     }
 
-    public List<OrderProductViewModel> getProducts() {
+    public List<DiscountProductViewModel> getProducts() {
         return products;
     }
 
-    public void setProducts(List<OrderProductViewModel> products) {
+    public void setProducts(List<DiscountProductViewModel> products) {
         this.products = products;
     }
 

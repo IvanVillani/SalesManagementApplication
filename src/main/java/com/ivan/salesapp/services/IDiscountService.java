@@ -11,11 +11,15 @@ public interface IDiscountService {
 
     List<DiscountServiceModel> findAllDiscounts();
 
+    List<DiscountServiceModel> findAllDiscountsByCreatorUsername(String username);
+
+    List<DiscountServiceModel> findAllDiscountsByProductId(String id);
+
     DiscountServiceModel findDiscountById(String id);
 
     void discountProduct(String productId, DiscountAddBindingModel discountAddBindingModel, UserServiceModel userServiceModel);
 
-    DiscountServiceModel editProductDiscount(DiscountServiceModel discountServiceModel);
+    void editProductDiscount(DiscountServiceModel discountServiceModel);
 
     void deleteDiscount(String id);
 

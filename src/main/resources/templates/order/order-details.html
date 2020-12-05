@@ -19,7 +19,10 @@
             <th class="col-md-3 text-center">Image</th>
             <th class="col-md-3 text-center">Name</th>
             <th class="col-md-2 text-center">Price</th>
-            <th class="col-md-3 text-center">Description</th>
+            <th class="col-md-3 text-center word-wrap"><div class="form-group">
+                <label for="add-product-description" class="font-weight-bold">Description</label>
+                <textarea name="description" id="add-product-description" class="word-wrap form-control" rows="5" th:text="${product.description}" disabled></textarea>
+            </div></th>
         </tr>
         </thead>
         <tbody>
@@ -28,7 +31,7 @@
                 <th class="col-md-1 text-center" th:text="${iter.index + 1}"></th>
                 <td class="col-md-3 text-center"><img th:src="*{product.imageUrl}" alt="Product" height="70" width="70"></td>
                 <td class="col-md-3 text-center" th:text="*{product.name}"></td>
-                <td class="col-md-2 text-center" th:text="*{price}"></td>
+                <td class="col-md-2 text-center" th:text="*{product.price}"></td>
                 <td class="col-md-2 text-center mx-auto" th:text="*{product.description}"></td>
             </tr>
         </th:block>

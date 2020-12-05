@@ -14,23 +14,22 @@
     <table class="table table-hover w-75 mx-auto">
         <thead>
         <tr class="row mx-auto">
-            <th class="col-md-2 text-center">#</th>
-            <th class="col-md-3 text-center">Product</th>
+            <th class="col-md-1 text-center">#</th>
+            <th class="col-md-2 text-center">Product</th>
+            <th class="col-md-3 text-center">Original Price</th>
             <th class="col-md-3 text-center">Discounted Price</th>
-            <th class="col-md-4 text-center">Actions</th>
+            <th class="col-md-3 text-center">Reseller</th>
         </tr>
         </thead>
         <tbody>
 
         <th:block th:each="discount, iter : ${discounts}">
             <tr class="row mx-auto">
-                <th class="col-md-2 text-center" th:text="${iter.index + 1}"></th>
-                <th class="col-md-3 text-center" th:text="${discount.product.name + 1}"></th>
-                <td class="col-md-3 text-center" th:text="${discount.price}"></td>
-                <td class="col-md-4 text-center">
-                    <a th:href="@{/discounts/edit/{id}(id=${discount.id})}" class="btn btn-secondary">Edit</a>
-                    <a th:href="@{/discounts/delete/{id}(id=${discount.id})}" class="btn btn-dark">Delete</a>
-                </td>
+                <th class="col-md-1 text-center" th:text="${iter.index + 1}"></th>
+                <th class="col-md-2 text-center" th:text="${discount.product.name + 1}"></th>
+                <td class="col-md-3 text-danger text-center" th:text="${discount.product.price}"></td>
+                <td class="col-md-3 text-info text-center" th:text="${discount.price}"></td>
+                <td class="col-md-3 text-center" th:text="${discount.creator}"></td>
             </tr>
         </th:block>
         </tbody>

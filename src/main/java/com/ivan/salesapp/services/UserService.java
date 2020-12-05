@@ -4,9 +4,11 @@ import com.ivan.salesapp.domain.entities.User;
 import com.ivan.salesapp.domain.models.service.RoleServiceModel;
 import com.ivan.salesapp.domain.models.service.UserServiceModel;
 import com.ivan.salesapp.domain.models.view.UserAllViewModel;
+import com.ivan.salesapp.enums.RoleEnum;
 import com.ivan.salesapp.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -45,7 +47,7 @@ public class UserService implements IUserService {
         }else {
             userServiceModel.setAuthorities(new LinkedHashSet<>());
 
-            userServiceModel.getAuthorities().add(this.iRoleService.findByAuthority("ROLE_USER"));
+            userServiceModel.getAuthorities().add(this.iRoleService.findByAuthority("ROLE_CLIENT"));
         }
 
         User user = this.modelMapper.map(userServiceModel, User.class);
@@ -89,9 +91,16 @@ public class UserService implements IUserService {
     public void deleteUserById(String id) {
         User user = this.userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("No such user!"));
 
-        if (new ArrayList<>(user.getAuthorities()).get(0).getAuthority().equals("ROLE_MODERATOR")){
-            this.iDiscountService.deleteDiscountsByUserId(id);
-        }
+        iDiscountService.deleteDiscountsByUserId(user.getId());
+
+        this.userRepository.delete(user);
+    }
+
+    @Override
+    public void deleteUserByUsername(String username) {
+        User user = this.userRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("No such user!"));
+
+        iDiscountService.deleteDiscountsByUserId(user.getId());
 
         this.userRepository.delete(user);
     }
@@ -121,42 +130,28 @@ public class UserService implements IUserService {
         UserServiceModel userServiceModel = this.modelMapper.map(user, UserServiceModel.class);
 
         userServiceModel.getAuthorities().clear();
-        switch (role){
-            case "user":
-                userServiceModel.getAuthorities().add(this.iRoleService.findByAuthority("ROLE_USER"));
-                break;
-            case "moderator":
-                userServiceModel.getAuthorities().add(this.iRoleService.findByAuthority("ROLE_MODERATOR"));
-                break;
-            case "admin":
-                userServiceModel.getAuthorities().add(this.iRoleService.findByAuthority("ROLE_ADMIN"));
-                break;
-        }
+
+        RoleEnum authority = RoleEnum.get(role);
+
+        userServiceModel.getAuthorities().add(this.iRoleService.findByAuthority(authority.toString()));
 
         this.userRepository.saveAndFlush(this.modelMapper.map(userServiceModel, User.class));
     }
 
     @Override
     public List<UserAllViewModel> getUsersBasedOnAuthority(String authority) {
-        if ("ROLE_MODERATOR".equals(authority)){
+        if (authority != null){
             return this.findAllUsers()
                     .stream()
-                    .filter(u -> new ArrayList<>(u.getAuthorities()).get(0).getAuthority().equals("ROLE_USER"))
-                    .map(mapToViewModelSetCategories(this.modelMapper))
-                    .collect(toList());
-        }else if ("ROLE_ADMIN".equals(authority)){
-            return this.findAllUsers()
-                    .stream()
-                    .filter(u -> new ArrayList<>(u.getAuthorities()).get(0).getAuthority().equals("ROLE_MODERATOR"))
-                    .map(mapToViewModelSetCategories(this.modelMapper))
-                    .collect(toList());
-        }else if ("ROLE_ROOT".equals(authority)){
-            return this.findAllUsers()
-                    .stream()
+                    .filter(u -> new ArrayList<>(u.getAuthorities()).size() == 1)
+                    .filter(u -> new ArrayList<>(u.getAuthorities()).get(0).getAuthority().equals(authority))
                     .map(mapToViewModelSetCategories(this.modelMapper))
                     .collect(toList());
         }else{
-            return null;
+            return this.findAllUsers()
+                    .stream()
+                    .map(mapToViewModelSetCategories(this.modelMapper))
+                    .collect(toList());
         }
     }
 

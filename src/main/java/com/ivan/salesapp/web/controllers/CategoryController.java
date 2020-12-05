@@ -30,13 +30,13 @@ public class CategoryController extends BaseController {
     }
 
     @GetMapping("/add")
-    @PreAuthorize("hasRole('ROLE_MODERATOR')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ModelAndView addCategory() {
         return super.view("category/add-category");
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasRole('ROLE_MODERATOR')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ModelAndView addCategoryConfirm(@ModelAttribute CategoryAddBindingModel model) {
         this.iCategoryService.addCategory(this.modelMapper.map(model, CategoryServiceModel.class));
 
@@ -44,7 +44,7 @@ public class CategoryController extends BaseController {
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ROLE_MODERATOR')")
+    @PreAuthorize("hasRole('ROLE_RESELLER') || hasRole('ROLE_ADMIN')")
     public ModelAndView allCategories(ModelAndView modelAndView) {
         modelAndView.addObject("categories",
                 this.iCategoryService.findAllCategories()
@@ -56,7 +56,7 @@ public class CategoryController extends BaseController {
     }
 
     @GetMapping("/edit/{id}")
-    @PreAuthorize("hasRole('ROLE_MODERATOR')")
+    @PreAuthorize("hasRole('ROLE_RESELLER')")
     public ModelAndView editCategory(@PathVariable String id, ModelAndView modelAndView) {
         modelAndView.addObject("model", this.modelMapper
                 .map(this.iCategoryService.findCategoryById(id), CategoryViewModel.class));
@@ -65,7 +65,7 @@ public class CategoryController extends BaseController {
     }
 
     @PostMapping("/edit/{id}")
-    @PreAuthorize("hasRole('ROLE_MODERATOR')")
+    @PreAuthorize("hasRole('ROLE_RESELLER')")
     public ModelAndView editCategoryConfirm(@PathVariable String id, @ModelAttribute CategoryAddBindingModel model) {
         this.iCategoryService.editCategory(id, this.modelMapper.map(model, CategoryServiceModel.class));
 
@@ -73,7 +73,7 @@ public class CategoryController extends BaseController {
     }
 
     @GetMapping("/delete/{id}")
-    @PreAuthorize("hasRole('ROLE_MODERATOR')")
+    @PreAuthorize("hasRole('ROLE_RESELLER')")
     public ModelAndView deleteCategory(@PathVariable String id, ModelAndView modelAndView) {
         modelAndView.addObject("model", this.modelMapper
                 .map(this.iCategoryService.findCategoryById(id), CategoryViewModel.class));
@@ -82,7 +82,7 @@ public class CategoryController extends BaseController {
     }
 
     @PostMapping("/delete/{id}")
-    @PreAuthorize("hasRole('ROLE_MODERATOR')")
+    @PreAuthorize("hasRole('ROLE_RESELLER')")
     public ModelAndView deleteCategoryConfirm(@PathVariable String id) {
         this.iCategoryService.deleteCategory(id, this.iProductService);
 
@@ -90,7 +90,7 @@ public class CategoryController extends BaseController {
     }
 
     @GetMapping("/fetch")
-    @PreAuthorize("hasRole('ROLE_MODERATOR')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @ResponseBody
     public List<CategoryViewModel> fetchCategories() {
         return this.iCategoryService.findAllCategories()

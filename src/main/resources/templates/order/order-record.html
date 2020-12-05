@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <th:block th:replace="fragments/head"></th:block>
+</head>
+<body>
+<div class="container-fluid">
+    <th:block th:replace="fragments/navbar"></th:block>
+    <main class="mt-3">
+        <h1 class="text-center text-dark" th:text="|Order / ${order.id}${#temporals.format(order.registerDate, 'dd-MM-yyyy HH:mm')}"></h1>
+        <hr class="hr-2 bg-dark w-75">
+        <table class="table table-hover w-75 mx-auto">
+            <thead>
+            <tr class="row mx-auto">
+                <th class="col-md-2 text-center">Image</th>
+                <th class="col-md-2 text-center">Name</th>
+                <th class="col-md-3 text-center">Description</th>
+                <th class="col-md-3 text-center">Reseller</th>
+                <th class="col-md-2 text-center">Quantity</th>
+            </tr>
+            </thead>
+            <tbody>
+            <th:block th:each="record : ${records}" th:object="${record}">
+                <tr class="row mx-auto">
+                    <th class="col-md-2 text-center"><img th:src="*{product.imageUrl}" alt="Product"
+                                                          height="150" width="150"></th>
+                    <td class="col-md-2 text-center" th:text="*{product.name}"></td>
+                    <td class="col-md-3 text-center">
+                        <div class="form-group">
+                            <textarea name="description" id="add-product-description" class="word-wrap form-control" rows="5" th:text="*{product.description}" disabled></textarea>
+                        </div>
+                    </td>
+                    <td class="col-md-3 text-center">
+                        <th:block th:if="*{stockQuantity} != 0">
+                            <p class="text-uppercase" th:text="|**STOCK**(*{product.price}) × *{stockQuantity}|"></p>
+                        </th:block>
+                        <th:block th:each="offer : *{offers}" th:object="${offer}">
+                            <p class="text-uppercase" th:text="|*{discount.creator}(*{discount.price}) × *{quantity}|"></p>
+                        </th:block>
+                    </td>
+                    <td class="col-md-2 text-center" th:text="*{fullQuantity}"></td>
+                </tr>
+            </th:block>
+            </tbody>
+        </table>
+        <hr class="hr-2 bg-dark">
+        <div class="text-center">
+            <h3 th:text="|Total: ${order.totalPrice}|"></h3>
+        </div>
+        <form th:action="@{/orders/my}" th:method="get">
+            <div class="button-holder d-flex justify-content-center">
+                <button type="submit" class="btn btn-secondary">Back</button>
+            </div>
+        </form>
+    </main>
+    <th:block th:replace="fragments/footer"></th:block>
+</div>
+</body>
+</html>

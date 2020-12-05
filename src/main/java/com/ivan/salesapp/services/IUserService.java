@@ -19,6 +19,8 @@ public interface IUserService extends UserDetailsService {
 
     void deleteUserById(String id);
 
+    void deleteUserByUsername(String username);
+
     void setUserRole(String id, String role);
 
     List<UserAllViewModel> getUsersBasedOnAuthority(String authority);

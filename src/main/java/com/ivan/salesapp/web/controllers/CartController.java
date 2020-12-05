@@ -1,13 +1,12 @@
 package com.ivan.salesapp.web.controllers;
 
-import com.ivan.salesapp.domain.models.service.OrderProductServiceModel;
-import com.ivan.salesapp.domain.models.service.OrderServiceModel;
-import com.ivan.salesapp.domain.models.view.OrderProductViewModel;
+import com.ivan.salesapp.domain.entities.Order;
+import com.ivan.salesapp.domain.models.service.*;
+import com.ivan.salesapp.domain.models.view.DiscountProductViewModel;
+import com.ivan.salesapp.domain.models.view.DiscountViewModel;
 import com.ivan.salesapp.domain.models.view.ProductDetailsViewModel;
 import com.ivan.salesapp.domain.models.view.ShoppingCartItem;
-import com.ivan.salesapp.services.IOrderService;
-import com.ivan.salesapp.services.IProductService;
-import com.ivan.salesapp.services.IUserService;
+import com.ivan.salesapp.services.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,21 +20,23 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpSession;
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+
+import static java.util.stream.Collectors.toList;
 
 @Controller
 @RequestMapping("/cart")
+@PreAuthorize("hasRole('ROLE_CLIENT')")
 public class CartController extends BaseController {
-
+    private final IDiscountService iDiscountService;
     private final IProductService iProductService;
     private final IUserService iUserService;
     private final IOrderService iOrderService;
     private final ModelMapper modelMapper;
 
     @Autowired
-    public CartController(IProductService iProductService, IUserService iUserService, IOrderService iOrderService, ModelMapper modelMapper) {
+    public CartController(IDiscountService iDiscountService, IProductService iProductService, IUserService iUserService, IOrderService iOrderService, ModelMapper modelMapper) {
+        this.iDiscountService = iDiscountService;
         this.iProductService = iProductService;
         this.iUserService = iUserService;
         this.iOrderService = iOrderService;
@@ -43,49 +44,68 @@ public class CartController extends BaseController {
     }
 
     @PostMapping("/add-product")
-    @PreAuthorize("isAuthenticated()")
-    public ModelAndView addToCartConfirm(String id, int quantity, HttpSession session) {
+    @PreAuthorize("hasRole('ROLE_CLIENT')")
+    public ModelAndView addToCartConfirm(String productId, String discountId, int quantity, HttpSession session) {
         ProductDetailsViewModel product = this.modelMapper
-                .map(this.iProductService.findProductById(id), ProductDetailsViewModel.class);
+                .map(this.iProductService.findProductById(productId), ProductDetailsViewModel.class);
 
-        OrderProductViewModel orderProductViewModel = new OrderProductViewModel();
-        orderProductViewModel.setProduct(product);
-        orderProductViewModel.setPrice(product.getPrice());
+        DiscountProductViewModel discountProductViewModel = new DiscountProductViewModel();
+        discountProductViewModel.setProduct(product);
+        discountProductViewModel.setDiscounts(new LinkedList<>());
 
         ShoppingCartItem cartItem = new ShoppingCartItem();
-        cartItem.setProduct(orderProductViewModel);
+
+        if(!discountId.equals(productId)){
+            discountProductViewModel.getDiscounts()
+                    .add(this.modelMapper
+                            .map(this.iDiscountService.findDiscountById(discountId), DiscountViewModel.class));
+            discountProductViewModel.getDiscounts().get(0).setQuantity(quantity);
+        }else{
+            cartItem.setStockQuantity(quantity);
+        }
+
+        cartItem.setProduct(discountProductViewModel);
         cartItem.setQuantity(quantity);
 
-        List<ShoppingCartItem> cart = this.retrieveCart(session);
-        this.addItemToCart(cartItem, cart);
+        List<ShoppingCartItem> cartItems = this.retrieveCart(session);
+        this.addItemToCart(cartItem, cartItems);
 
         return super.redirect("/home");
     }
 
     @GetMapping("/details")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ROLE_CLIENT')")
     public ModelAndView cartDetails(ModelAndView modelAndView, HttpSession session) {
-        var cart = this.retrieveCart(session);
-        modelAndView.addObject("totalPrice", this.calcTotal(cart));
+        List<ShoppingCartItem> cartItems = this.retrieveCart(session);
+        modelAndView.addObject("totalPrice", this.calcTotal(cartItems));
+        modelAndView.addObject("discounts", cartItems.stream().map(c -> c.getProduct().getDiscounts()));
 
         return super.view("cart/cart-details", modelAndView);
     }
 
     @DeleteMapping("/remove-product")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ROLE_CLIENT')")
     public ModelAndView removeFromCartConfirm(String id, HttpSession session) {
         this.removeItemFromCart(id, this.retrieveCart(session));
 
         return super.redirect("/cart/details");
     }
 
-    @PostMapping("/checkout")
-    @PreAuthorize("isAuthenticated()")
-    public ModelAndView checkoutConfirm(HttpSession session, Principal principal) {
-        var cart = this.retrieveCart(session);
 
-        OrderServiceModel orderServiceModel = this.prepareOrder(cart, principal.getName());
-        this.iOrderService.createOrder(orderServiceModel);
+    @PostMapping("/checkout")
+    @PreAuthorize("hasRole('ROLE_CLIENT')")
+    public ModelAndView checkoutConfirm(HttpSession session, Principal principal) {
+        List<ShoppingCartItem> cartItems = this.retrieveCart(session);
+
+        List<RecordServiceModel> models = extractDataIntoRecordServiceModel(cartItems);
+
+        OrderServiceModel orderServiceModel = this.prepareOrder(cartItems, principal.getName());
+        this.iOrderService.createOrder(orderServiceModel, models);
+
+        this.iOrderService.updateProductsStockAndNotifyByMail(models);
+
+        cartItems.clear();
+
         return super.redirect("/home");
     }
 
@@ -101,35 +121,75 @@ public class CartController extends BaseController {
         }
     }
 
-    private void addItemToCart(ShoppingCartItem item, List<ShoppingCartItem> cart) {
-        for (ShoppingCartItem shoppingCartItem : cart) {
+    private void addItemToCart(ShoppingCartItem item, List<ShoppingCartItem> cartItems) {
+        for (ShoppingCartItem shoppingCartItem : cartItems) {
             if (shoppingCartItem.getProduct().getProduct().getId().equals(item.getProduct().getProduct().getId())) {
+                if (!item.getProduct().getDiscounts().isEmpty()){
+                    if(shoppingCartItem.getProduct().getDiscounts().isEmpty()){
+                        shoppingCartItem.getProduct().setDiscounts(new LinkedList<>());
+                    }else{
+                        for (DiscountViewModel discount : shoppingCartItem.getProduct().getDiscounts()) {
+                            if(discount.getCreator().equals(item.getProduct().getDiscounts().get(0).getCreator())){
+                                discount.setQuantity(discount.getQuantity() + item.getQuantity());
+                                shoppingCartItem.setQuantity(shoppingCartItem.getQuantity() + item.getQuantity());
+                                return;
+                            }
+                        }
+                    }
+                    
+                    shoppingCartItem.getProduct().getDiscounts().addAll(item.getProduct().getDiscounts());
+                }
+
                 shoppingCartItem.setQuantity(shoppingCartItem.getQuantity() + item.getQuantity());
+                shoppingCartItem.setStockQuantity(shoppingCartItem.getStockQuantity() + item.getStockQuantity());
                 return;
             }
         }
 
-        cart.add(item);
+        cartItems.add(item);
     }
 
-    private void removeItemFromCart(String id, List<ShoppingCartItem> cart) {
-        cart.removeIf(ci -> ci.getProduct().getProduct().getId().equals(id));
+    private void removeItemFromCart(String id, List<ShoppingCartItem> cartItems) {
+        cartItems.removeIf(item -> item.getProduct().getProduct().getId().equals(id));
     }
 
-    private BigDecimal calcTotal(List<ShoppingCartItem> cart) {
+    private BigDecimal calcTotal(List<ShoppingCartItem> cartItems) {
         BigDecimal result = new BigDecimal(0);
-        for (ShoppingCartItem item : cart) {
-            result = result.add(item.getProduct().getPrice().multiply(new BigDecimal(item.getQuantity())));
+
+        for (ShoppingCartItem item : cartItems) {
+            BigDecimal productPrice = new BigDecimal(0);
+
+            int fullQuantity = item.getQuantity();
+            int stockQuantity;
+            int discountsQuantity = 0;
+
+            if (!item.getProduct().getDiscounts().isEmpty()){
+                for (DiscountViewModel discount : item.getProduct().getDiscounts()) {
+                    discountsQuantity += discount.getQuantity();
+                    result = result.add(discount.getPrice().multiply(new BigDecimal(discount.getQuantity())));
+                    productPrice = productPrice.add(discount.getPrice().multiply(new BigDecimal(discount.getQuantity())));
+                }
+            }
+            stockQuantity = fullQuantity -discountsQuantity;
+
+            result = result.add(item.getProduct().getProduct().getPrice().multiply(new BigDecimal(stockQuantity)));
+
+            productPrice = productPrice.add(item.getProduct().getProduct().getPrice().multiply(new BigDecimal(stockQuantity)));
+
+            item.getProduct().setPrice(productPrice);
         }
 
         return result;
     }
 
-    private OrderServiceModel prepareOrder(List<ShoppingCartItem> cart, String customer) {
+    private OrderServiceModel prepareOrder(List<ShoppingCartItem> cartItems, String customer) {
         OrderServiceModel orderServiceModel = new OrderServiceModel();
+
         orderServiceModel.setCustomer(this.iUserService.findUserByUsername(customer));
+
         List<OrderProductServiceModel> products = new ArrayList<>();
-        for (ShoppingCartItem item : cart) {
+
+        for (ShoppingCartItem item : cartItems) {
             OrderProductServiceModel productServiceModel = this.modelMapper.map(item.getProduct(), OrderProductServiceModel.class);
 
             for (int i = 0; i < item.getQuantity(); i++) {
@@ -138,8 +198,33 @@ public class CartController extends BaseController {
         }
 
         orderServiceModel.setProducts(products);
-        orderServiceModel.setTotalPrice(this.calcTotal(cart));
+        orderServiceModel.setTotalPrice(this.calcTotal(cartItems));
 
         return orderServiceModel;
     }
+
+    private List<RecordServiceModel> extractDataIntoRecordServiceModel(List<ShoppingCartItem> cartItems){
+        List<RecordServiceModel> models = new ArrayList<>();
+
+        for (ShoppingCartItem shoppingCartItem : cartItems) {
+            RecordServiceModel model = this.modelMapper.map(shoppingCartItem, RecordServiceModel.class);
+            model.setFullQuantity(shoppingCartItem.getQuantity());
+            model.setStockQuantity(shoppingCartItem.getStockQuantity());
+            model.setDiscountQuantity(shoppingCartItem.getQuantity() - shoppingCartItem.getStockQuantity());
+            model.setOffers(new ArrayList<>());
+
+            List<DiscountViewModel> srcDiscounts = shoppingCartItem.getProduct().getDiscounts();
+            for (DiscountViewModel srcDiscount : srcDiscounts) {
+                OfferServiceModel offer = new OfferServiceModel();
+                offer.setDiscount(this.modelMapper.map(srcDiscount, DiscountServiceModel.class));
+                offer.setQuantity(srcDiscount.getQuantity());
+                model.getOffers().add(offer);
+            }
+            models.add(model);
+        }
+
+        return models;
+    }
+
+
 }

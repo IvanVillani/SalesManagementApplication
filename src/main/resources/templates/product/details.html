@@ -9,47 +9,42 @@
     <th:block th:include="~{fragments/navbar}"></th:block>
 </header>
 <main class="mt-3">
-    <div class="jumbotron bg-light text-center">
-        <div class="text-center">
-            <img th:src="${product.imageUrl}" width="350" height="350" alt="Product">
-        </div>
+    <div class="jumbotron bg-light ">
         <div class="row">
-            <div class="col col-md-12 mt-5">
+            <div class="col"></div>
+
+            <div class="col">
+                <img th:src="${product.imageUrl}" width="350" height="350" alt="Product">
+            </div>
+
+            <div class="col">
                 <h1 th:text="'Name: ' + ${product.name}"></h1>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col col-md-12 mt-3">
-                <h4 th:text="'Desciption: ' + ${product.description}"></h4>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col col-md-12">
-                <th:block th:if="${product.discountedPrice == null}">
-                    <h4 th:text="'Price: ' + ${product.price}"></h4>
-                </th:block>
-                <th:block th:if="${product.discountedPrice != null}">
-<!--                    <h3 th:text="'Price: ' + ${product.discountedPrice} ${product.price}"></h3>-->
-<!--                    <h4 class="text-danger"><del th:text="${product.price}"></del></h4>-->
-                    <tbody>
-                        <tr class="row mx-auto">
-                            <td class="col-md-1" th:text="'Price: ' + ${product.discountedPrice} ${product.price}"></td>
-                            <td class="col-md-1 text-danger"><del th:text="${product.price}"></del></td>
-                        </tr>
-                    </tbody>
-                </th:block>
-            </div>
-        </div>
-        <div class="row">
-            <form class="form w-25 mx-auto" th:action="@{/cart/add-product}" th:method="post">
-                <div class="form-group mx-auto">
-                    <label for="quantity" class="font-weight-bold">Quantity</label>
-                    <input id="quantity" class="form-control text-center" type="number" min="1" max="15" step="1"
-                           name="quantity" value="1"/>
+
+                <div class="form-group">
+                    <label for="add-product-description" class="font-weight-bold">Description</label>
+                    <textarea name="description" id="add-product-description" class="word-wrap form-control" rows="5" th:text="${product.description}" disabled></textarea>
                 </div>
-                <input type="hidden" name="id" th:value="${product.id}">
-                <button type="submit" class="btn btn-success">Order Product</button>
-            </form>
+
+                <div class="text-dark">-</div>
+
+                <form class="form w-75" th:action="@{/cart/add-product}" th:method="post">
+                    <label for="choose-product-resellers">Choose Reseller</label>
+                    <select class="form-control text-dark text-uppercase font-italic font-weight-bold" id="choose-product-resellers" name="discountId">
+                        <option selected="" th:value="${product.id}">**STOCK PRICE** ${product.price}$</option>
+
+                    </select>
+                    <div class="text-dark">-</div>
+                    <label for="quantity" class="font-weight-bold">Quantity</label>
+                    <input id="quantity" class="form-control text-center" type="number" min="1" th:max="${product.stock - cartQuantity}"
+                           step="1"
+                           name="quantity" value="1"/>
+                    <input type="hidden" name="productId" th:value="${product.id}">
+                    <div class="text-dark">-</div>
+                    <button type="submit" class="btn btn-dark">Add to Cart</button>
+                </form>
+            </div>
+
+            <div class="col"></div>
         </div>
     </div>
 </main>
@@ -57,4 +52,18 @@
     <th:block th:include="~{fragments/footer}"></th:block>
 </footer>
 </body>
+<script th:inline="javascript">
+    let productId = [[${product.id}]];
+    console.log(productId);
+    fetch('/discounts/fetch/' + productId)
+        .then((response) => response.json())
+        .then((json) => {
+            json.forEach((d) => console.log(d));
+            json.forEach((discount) =>
+                $('#choose-product-resellers').append(
+                    `<option value="${discount.id}">**${discount.creator}** $${discount.price.toFixed(2)}</option>`
+                ));
+        })
+        .catch((err) => console.log(err));
+</script>
 </html>

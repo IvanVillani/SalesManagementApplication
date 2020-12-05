@@ -9,7 +9,32 @@
     <th:block th:include="~{fragments/navbar}"></th:block>
 </header>
 <main class="mt-3">
-    <h1 class="text-center text-dark">Orders</h1>
+    <div class="row">
+        <div class="col"></div>
+        <div class="col-10">
+            <div class="row">
+                <div class="col-5"><h1 class="text-left text-dark">Orders</h1></div>
+                <div class="col-5">
+                    <form id="add-category-form" class="form w-75 mx-auto" th:action="@{/orders/search}" th:method="post">
+                        <div class="row">
+                            <div class="col-9">
+                                <div class="rounded input-daterange input-group" id="datepicker">
+                                    <input type="text" class="input-sm form-control" name="start" required/>
+                                    <span class="input-group-addon">to</span>
+                                    <input type="text" class="input-sm form-control" name="end" required/>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="button-holder d-flex justify-content-center">
+                                    <button type="submit" class="btn btn-secondary">Search</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
     <hr class="hr-2 bg-dark w-75">
     <table class="table table-hover w-75 mx-auto">
         <thead>
@@ -31,10 +56,10 @@
                 <td class="col-md-2 text-center mx-auto">
                     <div class="text-center">
                         <th:block sec:authorize="hasRole('ROLE_ADMIN')">
-                            <a th:href="@{/orders/all/details/{id}(id=*{id})}" class="btn btn-info">Products</a>
+                            <a th:href="@{/records/details/{id}(id=*{id})}" class="btn btn-info">Products</a>
                         </th:block>
                         <th:block sec:authorize="!hasRole('ROLE_ADMIN')">
-                            <a th:href="@{/orders/my/details/{id}(id=*{id})}" class="btn btn-info">Products</a>
+                            <a th:href="@{/records/details/{id}(id=*{id})}" class="btn btn-info">Products</a>
                         </th:block>
                     </div>
 
@@ -49,4 +74,16 @@
     <th:block th:include="~{fragments/footer}"></th:block>
 </footer>
 </body>
+<script>
+    $('#datepicker').datepicker({
+        format: "dd/mm/yyyy",
+        timepicker: true,
+        datepicker: true
+    });
+
+    $('input[name=start], input[name=end]').change(function () {
+        let start = $('input[name=start]').val();
+        let end = $('input[name=end]').val();
+    })
+</script>
 </html>
