@@ -30,7 +30,7 @@
                 <form class="form w-75" th:action="@{/cart/add-product}" th:method="post">
                     <label for="choose-product-resellers">Choose Reseller</label>
                     <select class="form-control text-dark text-uppercase font-italic font-weight-bold" id="choose-product-resellers" name="discountId">
-                        <option selected="" th:value="${product.id}">**STOCK PRICE** ${product.price}$</option>
+                        <option selected="" th:value="${product.id}">**STOCK PRICE** $<span th:text="${product.price}"></span></option>
 
                     </select>
                     <div class="text-dark">-</div>
