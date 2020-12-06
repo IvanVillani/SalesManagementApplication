@@ -1,5 +1,7 @@
 package com.ivan.salesapp.web.controllers;
 
+import com.ivan.salesapp.constants.RoleConstants;
+import com.ivan.salesapp.constants.ViewConstants;
 import com.ivan.salesapp.domain.models.binding.CategoryAddBindingModel;
 import com.ivan.salesapp.domain.models.service.CategoryServiceModel;
 import com.ivan.salesapp.domain.models.view.CategoryViewModel;
@@ -17,7 +19,7 @@ import static java.util.stream.Collectors.toList;
 
 @RestController
 @RequestMapping("/categories")
-public class CategoryController extends BaseController {
+public class CategoryController extends BaseController implements RoleConstants, ViewConstants {
     private final ICategoryService iCategoryService;
     private final IProductService iProductService;
     private final ModelMapper modelMapper;
@@ -30,13 +32,13 @@ public class CategoryController extends BaseController {
     }
 
     @GetMapping("/add")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize(ROLE_ADMIN)
     public ModelAndView addCategory() {
-        return super.view("category/add-category");
+        return super.view(CATEGORY_ADD);
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize(ROLE_ADMIN)
     public ModelAndView addCategoryConfirm(@ModelAttribute CategoryAddBindingModel model) {
         this.iCategoryService.addCategory(this.modelMapper.map(model, CategoryServiceModel.class));
 
@@ -44,7 +46,7 @@ public class CategoryController extends BaseController {
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ROLE_RESELLER') || hasRole('ROLE_ADMIN')")
+    @PreAuthorize(ROLE_RESELLER_OR_ADMIN)
     public ModelAndView allCategories(ModelAndView modelAndView) {
         modelAndView.addObject("categories",
                 this.iCategoryService.findAllCategories()
@@ -52,20 +54,20 @@ public class CategoryController extends BaseController {
                         .map(c -> this.modelMapper.map(c, CategoryViewModel.class))
                         .collect(toList()));
 
-        return super.view("/category/all-categories", modelAndView);
+        return super.view(CATEGORY_ALL, modelAndView);
     }
 
     @GetMapping("/edit/{id}")
-    @PreAuthorize("hasRole('ROLE_RESELLER')")
+    @PreAuthorize(ROLE_RESELLER)
     public ModelAndView editCategory(@PathVariable String id, ModelAndView modelAndView) {
         modelAndView.addObject("model", this.modelMapper
                 .map(this.iCategoryService.findCategoryById(id), CategoryViewModel.class));
 
-        return super.view("/category/edit-category", modelAndView);
+        return super.view(CATEGORY_EDIT, modelAndView);
     }
 
     @PostMapping("/edit/{id}")
-    @PreAuthorize("hasRole('ROLE_RESELLER')")
+    @PreAuthorize(ROLE_RESELLER)
     public ModelAndView editCategoryConfirm(@PathVariable String id, @ModelAttribute CategoryAddBindingModel model) {
         this.iCategoryService.editCategory(id, this.modelMapper.map(model, CategoryServiceModel.class));
 
@@ -73,16 +75,16 @@ public class CategoryController extends BaseController {
     }
 
     @GetMapping("/delete/{id}")
-    @PreAuthorize("hasRole('ROLE_RESELLER')")
+    @PreAuthorize(ROLE_RESELLER)
     public ModelAndView deleteCategory(@PathVariable String id, ModelAndView modelAndView) {
         modelAndView.addObject("model", this.modelMapper
                 .map(this.iCategoryService.findCategoryById(id), CategoryViewModel.class));
 
-        return super.view("/category/delete-category", modelAndView);
+        return super.view(CATEGORY_DELETE, modelAndView);
     }
 
     @PostMapping("/delete/{id}")
-    @PreAuthorize("hasRole('ROLE_RESELLER')")
+    @PreAuthorize(ROLE_RESELLER)
     public ModelAndView deleteCategoryConfirm(@PathVariable String id) {
         this.iCategoryService.deleteCategory(id, this.iProductService);
 
@@ -90,7 +92,7 @@ public class CategoryController extends BaseController {
     }
 
     @GetMapping("/fetch")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize(ROLE_ADMIN)
     @ResponseBody
     public List<CategoryViewModel> fetchCategories() {
         return this.iCategoryService.findAllCategories()

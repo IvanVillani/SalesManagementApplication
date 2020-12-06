@@ -1,5 +1,6 @@
 package com.ivan.salesapp.web.controllers;
 
+import com.ivan.salesapp.constants.ViewConstants;
 import com.ivan.salesapp.domain.models.view.CategoryViewModel;
 import com.ivan.salesapp.services.ICategoryService;
 import org.modelmapper.ModelMapper;
@@ -15,7 +16,7 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 
 @RestController
-public class HomeController extends BaseController{
+public class HomeController extends BaseController implements ViewConstants {
     private final ICategoryService iCategoryService;
     private final ModelMapper modelMapper;
 
@@ -36,10 +37,10 @@ public class HomeController extends BaseController{
         modelAndView.addObject("categories", categories);
 
         if (checkIfAuthenticated()){
-            return super.view("home", modelAndView);
+            return super.view(HOME, modelAndView);
         }
 
-        return super.view("index", modelAndView);
+        return super.view(INDEX, modelAndView);
     }
 
     @GetMapping("/home")
@@ -52,7 +53,7 @@ public class HomeController extends BaseController{
 
         modelAndView.addObject("categories", categories);
 
-        return super.view("home", modelAndView);
+        return super.view(HOME, modelAndView);
     }
 
     private static Authentication getAuthentication(){

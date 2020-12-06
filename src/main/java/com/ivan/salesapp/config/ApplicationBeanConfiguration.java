@@ -1,11 +1,13 @@
 package com.ivan.salesapp.config;
 
+import com.ivan.salesapp.constants.MailSenderConstants;
 import com.ivan.salesapp.domain.entities.Discount;
 import com.ivan.salesapp.domain.models.service.DiscountServiceModel;
 import com.ivan.salesapp.domain.models.view.DiscountViewModel;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -15,7 +17,7 @@ import java.util.Properties;
 
 
 @Configuration
-public class ApplicationBeanConfiguration {
+public class ApplicationBeanConfiguration implements MailSenderConstants {
     @Bean
     public ModelMapper modelMapper() {
         ModelMapper modelMapper = new ModelMapper();
@@ -40,17 +42,17 @@ public class ApplicationBeanConfiguration {
     @Bean
     public JavaMailSender getJavaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost("smtp.gmail.com");
-        mailSender.setPort(587);
+        mailSender.setHost(MailSenderConstants.HOST);
+        mailSender.setPort(MailSenderConstants.PORT);
 
-        mailSender.setUsername("design.your.home.store@gmail.com");
-        mailSender.setPassword("designyourhome");
+        mailSender.setUsername(MailSenderConstants.USERNAME);
+        mailSender.setPassword(MailSenderConstants.PASSWORD);
 
         Properties props = mailSender.getJavaMailProperties();
-        props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.debug", "true");
+        props.put(MailSenderConstants.SMTP, "smtp");
+        props.put(MailSenderConstants.AUTH, "true");
+        props.put(MailSenderConstants.TLS, "true");
+        props.put(MailSenderConstants.DEBUG, "true");
 
         return mailSender;
     }

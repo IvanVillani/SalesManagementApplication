@@ -1,6 +1,8 @@
 package com.ivan.salesapp.services;
 
 
+import com.ivan.salesapp.constants.ExceptionMessageConstants;
+import com.ivan.salesapp.constants.MailSenderConstants;
 import com.ivan.salesapp.domain.entities.Order;
 import com.ivan.salesapp.domain.entities.Product;
 import com.ivan.salesapp.domain.models.service.OrderServiceModel;
@@ -24,7 +26,7 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 
 @Service
-public class OrderService implements IOrderService {
+public class OrderService implements IOrderService, MailSenderConstants, ExceptionMessageConstants {
 
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
@@ -54,15 +56,9 @@ public class OrderService implements IOrderService {
 
         Order order = this.modelMapper.map(orderServiceModel, Order.class);
 
-        updateProductsStockAndNotifyByMail(models);
-
         this.orderRepository.saveAndFlush(order);
 
-        List<OrderServiceModel> orders = this.orderRepository.findAll()
-                .stream()
-                .map(o -> this.modelMapper.map(o, OrderServiceModel.class))
-                .filter(o -> o.getRegisterDate().isEqual(orderServiceModel.getRegisterDate()))
-                .collect(toList());
+        List<OrderServiceModel> orders = findOrdersByRegisterDate(orderServiceModel);
 
         if (!orders.isEmpty()){
             for (RecordServiceModel model : models) {
@@ -113,30 +109,40 @@ public class OrderService implements IOrderService {
         return this.orderRepository.findById(id)
                 .map(o -> this.modelMapper.map(o, OrderServiceModel.class))
                 .orElseThrow(() ->
-                        new IllegalArgumentException(String.format("No such order with id:%s!", id)));
+                        new IllegalArgumentException(String.format(ExceptionMessageConstants.ORDER_NOT_FOUND, id)));
     }
 
     @Async
     @Override
-    public void updateProductsStockAndNotifyByMail(List<RecordServiceModel> records){
+    public void updateProductsStock(List<RecordServiceModel> records){
         for (RecordServiceModel record : records) {
             Product product = this.productRepository.findById(record.getProduct().getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Product to update not found!"));
+                    .orElseThrow(() -> new IllegalArgumentException(ExceptionMessageConstants.PRODUCT_TO_UPDATE_NOT_FOUND));
 
             product.setStock(product.getStock() - record.getFullQuantity());
+        }
+    }
+
+    @Async
+    @Override
+    public void checkStockAndNotifyByMail(List<RecordServiceModel> records){
+        for (RecordServiceModel record : records) {
+            Product product = this.productRepository.findById(record.getProduct().getId())
+                    .orElseThrow(() -> new IllegalArgumentException(ExceptionMessageConstants.PRODUCT_TO_UPDATE_NOT_FOUND));
 
             if (product.getStock() <= 10){
-                String subject = String.format("WARNING:%S quantity is critical!", product.getName());
-                String text = String.format("Dear Administrator,\n\nThis email was sent to inform you " +
-                        "that the quantity of %s with product-ID:%s\n" +
-                        "is low and below the minimum of 10 in stock.\n We recommend you to restock.\n" + "--Details: \n" +
-                        "---Last order proceeded: \n---Customer: \n" + "---Ordered: %s\n" + "---Remaining: %s\n\n" +
-                        "Please do not reply to this email! It was sent by the system of Home Design Store.\n" +
-                        "Thank you!\n\n" +
-                        "Best Regards,\n" +
-                        "Team Home Design Store", product.getName(), product.getId(), record.getFullQuantity(), product.getStock());
+                String subject = String.format(MailSenderConstants.MESSAGE_SUBJECT, product.getName());
+                String text = String.format(MailSenderConstants.MESSAGE_TEXT, product.getName(), product.getId(), record.getFullQuantity(), product.getStock());
                 this.iEmailService.sendSimpleMessage("navisdays@gmail.com", subject, text);
             }
         }
+    }
+
+    private List<OrderServiceModel> findOrdersByRegisterDate(OrderServiceModel orderServiceModel) {
+        return this.orderRepository.findAll()
+                .stream()
+                .map(o -> this.modelMapper.map(o, OrderServiceModel.class))
+                .filter(o -> o.getRegisterDate().isEqual(orderServiceModel.getRegisterDate()))
+                .collect(toList());
     }
 }

@@ -1,5 +1,7 @@
 package com.ivan.salesapp.web.controllers;
 
+import com.ivan.salesapp.constants.RoleConstants;
+import com.ivan.salesapp.constants.ViewConstants;
 import com.ivan.salesapp.domain.models.binding.DiscountAddBindingModel;
 import com.ivan.salesapp.domain.models.binding.DiscountEditBindingModel;
 import com.ivan.salesapp.domain.models.binding.ProductDiscountBindingModel;
@@ -24,7 +26,7 @@ import static java.util.stream.Collectors.toList;
 
 @RestController
 @RequestMapping("/discounts")
-public class DiscountController extends BaseController {
+public class DiscountController extends BaseController implements RoleConstants, ViewConstants {
     private final IDiscountService iDiscountService;
     private final IProductService iProductService;
     private final IUserService iUserService;
@@ -39,66 +41,66 @@ public class DiscountController extends BaseController {
     }
 
     @GetMapping("/my")
-    @PreAuthorize("hasRole('ROLE_RESELLER')")
+    @PreAuthorize(ROLE_RESELLER)
     public ModelAndView myDiscounts(Principal principal, ModelAndView modelAndView) {
         modelAndView.addObject("discounts", this.iDiscountService.findAllDiscountsByCreatorUsername(principal.getName())
                 .stream()
                 .map(d -> this.modelMapper.map(d, DiscountViewModel.class))
                 .collect(toList()));
 
-        return super.view("discount/my-discounts", modelAndView);
+        return super.view(DISCOUNT_MY, modelAndView);
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize(ROLE_ADMIN)
     public ModelAndView allDiscounts(ModelAndView modelAndView) {
         modelAndView.addObject("discounts", this.iDiscountService.findAllDiscounts()
                 .stream()
                 .map(d -> this.modelMapper.map(d, DiscountViewModel.class))
                 .collect(toList()));
 
-        return super.view("discount/all-discounts", modelAndView);
+        return super.view(DISCOUNT_ALL, modelAndView);
     }
 
     @GetMapping("/choose-product")
-    @PreAuthorize("hasRole('ROLE_RESELLER')")
+    @PreAuthorize(ROLE_RESELLER)
     public ModelAndView chooseDiscountProduct(ModelAndView modelAndView) {
         modelAndView.addObject("products", this.iProductService.findAllProducts()
                 .stream()
                 .map(p -> this.modelMapper.map(p, ProductAllViewModel.class))
                 .collect(toList()));
 
-        return super.view("discount/choose-product", modelAndView);
+        return super.view(DISCOUNT_CHOOSE_PRODUCT, modelAndView);
     }
 
     @GetMapping("/product{id}")
-    @PreAuthorize("hasRole('ROLE_RESELLER')")
+    @PreAuthorize(ROLE_RESELLER)
     public ModelAndView discountChosenProduct(@PathVariable String id, ModelAndView modelAndView) {
         modelAndView.addObject("product", this.iProductService.findProductById(id));
 
-        return super.view("discount/add-discount", modelAndView);
+        return super.view(DISCOUNT_ADD, modelAndView);
     }
 
     @PostMapping("/add{id}")
-    @PreAuthorize("hasRole('ROLE_RESELLER')")
+    @PreAuthorize(ROLE_RESELLER)
     public ModelAndView addDiscountConfirm(@PathVariable String id, @ModelAttribute DiscountAddBindingModel model, Principal principal) {
         this.iDiscountService.discountProduct(id, model, iUserService.findUserByUsername(principal.getName()));
         return super.redirect("/discounts/my");
     }
 
     @GetMapping("/edit/{id}")
-    @PreAuthorize("hasRole('ROLE_RESELLER')")
+    @PreAuthorize(ROLE_RESELLER)
     public ModelAndView editDiscount(@PathVariable String id, ModelAndView modelAndView) {
         DiscountServiceModel discountServiceModel = this.iDiscountService.findDiscountById(id);
         DiscountEditBindingModel model = this.modelMapper.map(discountServiceModel, DiscountEditBindingModel.class);
 
         modelAndView.addObject("discount", model);
 
-        return super.view("discount/edit-discount", modelAndView);
+        return super.view(DISCOUNT_EDIT, modelAndView);
     }
 
     @PostMapping("/edit/{id}")
-    @PreAuthorize("hasRole('ROLE_RESELLER')")
+    @PreAuthorize(ROLE_RESELLER)
     public ModelAndView editDiscountConfirm(@PathVariable String id, @ModelAttribute DiscountEditBindingModel model) {
         this.iDiscountService.editProductDiscount(this.modelMapper
                 .map(model, DiscountServiceModel.class));
@@ -107,18 +109,18 @@ public class DiscountController extends BaseController {
     }
 
     @GetMapping("/delete/{id}")
-    @PreAuthorize("hasRole('ROLE_RESELLER')")
+    @PreAuthorize(ROLE_RESELLER)
     public ModelAndView deleteDiscount(@PathVariable String id, ModelAndView modelAndView) {
         DiscountServiceModel discountServiceModel = this.iDiscountService.findDiscountById(id);
         DiscountEditBindingModel model = this.modelMapper.map(discountServiceModel, DiscountEditBindingModel.class);
 
         modelAndView.addObject("discount", model);
 
-        return super.view("discount/delete-discount", modelAndView);
+        return super.view(DISCOUNT_DELETE, modelAndView);
     }
 
     @PostMapping("/delete/{id}")
-    @PreAuthorize("hasRole('ROLE_RESELLER')")
+    @PreAuthorize(ROLE_RESELLER)
     public ModelAndView deleteDiscountConfirm(@PathVariable String id) {
         this.iDiscountService.deleteDiscount(id);
 

@@ -1,10 +1,13 @@
 package com.ivan.salesapp.web.controllers;
 
+import com.ivan.salesapp.constants.RoleConstants;
+import com.ivan.salesapp.constants.ViewConstants;
 import com.ivan.salesapp.domain.models.binding.UserEditBindingModel;
 import com.ivan.salesapp.domain.models.binding.UserRegisterBindingModel;
 import com.ivan.salesapp.domain.models.service.UserServiceModel;
 import com.ivan.salesapp.domain.models.view.UserAllViewModel;
 import com.ivan.salesapp.domain.models.view.UserProfileViewModel;
+import com.ivan.salesapp.enums.UserRole;
 import com.ivan.salesapp.services.IUserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +22,7 @@ import java.util.Objects;
 
 @RestController
 @RequestMapping("/users")
-public class UserController extends BaseController {
+public class UserController extends BaseController implements RoleConstants, ViewConstants {
     private final IUserService iUserService;
     private final ModelMapper modelMapper;
 
@@ -32,14 +35,14 @@ public class UserController extends BaseController {
     @GetMapping("/register")
     @PreAuthorize("isAnonymous()")
     public ModelAndView register() {
-        return super.view("user/register");
+        return super.view(USER_REGISTER);
     }
 
     @PostMapping("/register")
     @PreAuthorize("isAnonymous()")
     public ModelAndView registerConfirm(@ModelAttribute UserRegisterBindingModel model) {
         if (!model.getPassword().equals(model.getConfirmPassword())) {
-            return super.view("user/register");
+            return super.view(USER_REGISTER);
         }
         this.iUserService.registerUser(this.modelMapper.map(model, UserServiceModel.class));
 
@@ -49,7 +52,7 @@ public class UserController extends BaseController {
     @GetMapping("/login")
     @PreAuthorize("isAnonymous()")
     public ModelAndView login() {
-        return super.view("user/login");
+        return super.view(USER_LOGIN);
     }
 
     @GetMapping("/login/order{id}")
@@ -57,7 +60,7 @@ public class UserController extends BaseController {
     public ModelAndView login(@PathVariable String id, ModelAndView modelAndView) {
         modelAndView.addObject("productId", id);
 
-        return super.view("user/login", modelAndView);
+        return super.view(USER_LOGIN, modelAndView);
     }
 
     @GetMapping("/profile")
@@ -65,7 +68,7 @@ public class UserController extends BaseController {
     public ModelAndView profile(Principal principal, ModelAndView modelAndView) {
         modelAndView.addObject("model", this.modelMapper
                 .map(this.iUserService.findUserByUsername(principal.getName()), UserProfileViewModel.class));
-        return super.view("user/profile", modelAndView);
+        return super.view(USER_PROFILE, modelAndView);
     }
 
     @GetMapping("/edit")
@@ -73,7 +76,7 @@ public class UserController extends BaseController {
     public ModelAndView editProfile(Principal principal, ModelAndView modelAndView) {
         modelAndView.addObject("model", this.modelMapper
                 .map(this.iUserService.findUserByUsername(principal.getName()), UserProfileViewModel.class));
-        return super.view("user/edit-profile", modelAndView);
+        return super.view(USER_EDIT, modelAndView);
     }
 
     @PatchMapping("/edit")
@@ -87,7 +90,7 @@ public class UserController extends BaseController {
     }
 
     @PostMapping("/delete-client{id}")
-    @PreAuthorize("hasRole('ROLE_RESELLER') || hasRole('ROLE_ADMIN')")
+    @PreAuthorize(ROLE_RESELLER_OR_ADMIN)
     public ModelAndView deleteClient(@PathVariable String id) {
         this.iUserService.deleteUserById(id);
 
@@ -95,7 +98,7 @@ public class UserController extends BaseController {
     }
 
     @PostMapping("/delete-reseller{id}")
-    @PreAuthorize("hasRole('ROLE_Admin')")
+    @PreAuthorize(ROLE_ADMIN)
     public ModelAndView deleteReseller(@PathVariable String id) {
         this.iUserService.deleteUserById(id);
 
@@ -103,7 +106,7 @@ public class UserController extends BaseController {
     }
 
     @PostMapping("/delete-admin{id}")
-    @PreAuthorize("hasRole('ROLE_ROOT')")
+    @PreAuthorize(ROLE_ROOT)
     public ModelAndView deleteAdmin(@PathVariable String id) {
         this.iUserService.deleteUserById(id);
 
@@ -122,30 +125,30 @@ public class UserController extends BaseController {
     @PreAuthorize("isAuthenticated()")
     public ModelAndView allClients(ModelAndView modelAndView) {
         List<UserAllViewModel> usersList = iUserService
-                .getUsersBasedOnAuthority("ROLE_CLIENT");
+                .getUsersBasedOnAuthority(UserRole.CLIENT.toString());
 
         modelAndView.addObject("users", Objects.requireNonNullElseGet(usersList, ArrayList::new));
 
         modelAndView.addObject("title", "Clients");
 
-        return super.view("user/all-users", modelAndView);
+        return super.view(USER_ALL, modelAndView);
     }
 
     @GetMapping("/all/resellers")
     @PreAuthorize("isAuthenticated()")
     public ModelAndView allResellers(ModelAndView modelAndView) {
         List<UserAllViewModel> usersList = iUserService
-                .getUsersBasedOnAuthority("ROLE_RESELLER");
+                .getUsersBasedOnAuthority(UserRole.RESELLER.toString());
 
         modelAndView.addObject("users", Objects.requireNonNullElseGet(usersList, ArrayList::new));
 
         modelAndView.addObject("title", "Resellers");
 
-        return super.view("user/all-users", modelAndView);
+        return super.view(USER_ALL, modelAndView);
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ROLE_ROOT')")
+    @PreAuthorize(ROLE_ROOT)
     public ModelAndView allUsers(ModelAndView modelAndView) {
         List<UserAllViewModel> usersList = iUserService
                 .getUsersBasedOnAuthority(null);
@@ -154,29 +157,29 @@ public class UserController extends BaseController {
 
         modelAndView.addObject("title", "Users");
 
-        return super.view("user/all-users", modelAndView);
+        return super.view(USER_ALL, modelAndView);
     }
 
     @PostMapping("/set-client/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN') || hasRole('ROLE_RESELLER')")
+    @PreAuthorize(ROLE_RESELLER_OR_ADMIN)
     public ModelAndView setUser(@PathVariable String id) {
-        this.iUserService.setUserRole(id, "client");
+        this.iUserService.setUserRole(id, UserRole.CLIENT.getRole());
 
         return super.redirect("/users/all/clients");
     }
 
     @PostMapping("/set-reseller/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize(ROLE_ADMIN)
     public ModelAndView setModerator(@PathVariable String id) {
-        this.iUserService.setUserRole(id, "reseller");
+        this.iUserService.setUserRole(id, UserRole.RESELLER.getRole());
 
         return super.redirect("/users/all/resellers");
     }
 
     @PostMapping("/set-admin/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize(ROLE_ADMIN)
     public ModelAndView setAdmin(@PathVariable String id) {
-        this.iUserService.setUserRole(id, "admin");
+        this.iUserService.setUserRole(id, UserRole.ADMIN.getRole());
 
         return super.redirect("/users/all/resellers");
     }

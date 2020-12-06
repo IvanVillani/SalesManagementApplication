@@ -1,5 +1,6 @@
 package com.ivan.salesapp.services;
 
+import com.ivan.salesapp.constants.MailSenderConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.FileSystemResource;
@@ -14,7 +15,7 @@ import javax.mail.internet.MimeMessage;
 import java.io.File;
 
 @Service
-public class EmailService implements IEmailService {
+public class EmailService implements IEmailService, MailSenderConstants {
     private final JavaMailSender mailSender;
 
     @Autowired
@@ -25,7 +26,7 @@ public class EmailService implements IEmailService {
     @Override
     public void sendSimpleMessage(String to, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("design.your.home.store@gmail.com");
+        message.setFrom(MailSenderConstants.USERNAME);
         message.setTo(to);
         message.setSubject(subject);
         message.setText(text);
@@ -38,7 +39,7 @@ public class EmailService implements IEmailService {
 
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
-        helper.setFrom("design.your.home.store@gmail.com");
+        helper.setFrom(MailSenderConstants.USERNAME);
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(text);

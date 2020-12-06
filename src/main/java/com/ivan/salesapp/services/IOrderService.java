@@ -19,5 +19,7 @@ public interface IOrderService {
 
     OrderServiceModel findOrderById(String id);
 
-    void updateProductsStockAndNotifyByMail(List<RecordServiceModel> records);
+    void updateProductsStock(List<RecordServiceModel> records);
+
+    void checkStockAndNotifyByMail(List<RecordServiceModel> records);
 }

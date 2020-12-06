@@ -1,5 +1,7 @@
 package com.ivan.salesapp.web.controllers;
 
+import com.ivan.salesapp.constants.RoleConstants;
+import com.ivan.salesapp.constants.ViewConstants;
 import com.ivan.salesapp.domain.models.binding.ProductAddBindingModel;
 import com.ivan.salesapp.domain.models.binding.ProductDeleteBindingModel;
 import com.ivan.salesapp.domain.models.binding.ProductEditBindingModel;
@@ -27,7 +29,7 @@ import static java.util.stream.Collectors.toList;
 
 @RestController
 @RequestMapping("/products")
-public class ProductController extends BaseController {
+public class ProductController extends BaseController implements RoleConstants, ViewConstants {
     private final IProductService iProductService;
     private final ICategoryService iCategoryService;
     private final ICloudinaryService iCloudinaryService;
@@ -45,14 +47,14 @@ public class ProductController extends BaseController {
     }
 
     @GetMapping("/add")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize(ROLE_ADMIN)
     public ModelAndView addProduct() {
         //Doesn't need setting the view in ModelAndView, because of AJAX (using for fetch in add-product.html)
-        return super.view("product/add-product");
+        return super.view(PRODUCT_ADD);
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize(ROLE_ADMIN)
     public ModelAndView addProductConfirm(@ModelAttribute ProductAddBindingModel model) throws IOException {
         ProductServiceModel productServiceModel = this.modelMapper.map(model, ProductServiceModel.class);
 
@@ -70,14 +72,14 @@ public class ProductController extends BaseController {
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ROLE_RESELLER') || hasRole('ROLE_ADMIN')")
+    @PreAuthorize(ROLE_RESELLER_OR_ADMIN)
     public ModelAndView allProducts(ModelAndView modelAndView) throws IOException {
         modelAndView.addObject("products", this.iProductService.findAllProducts()
                 .stream()
                 .map(p -> this.modelMapper.map(p, ProductAllViewModel.class))
                 .collect(toList()));
 
-        return super.view("product/all-products", modelAndView);
+        return super.view(PRODUCT_ALL, modelAndView);
     }
 
     @GetMapping("/details/{id}")
@@ -99,11 +101,11 @@ public class ProductController extends BaseController {
 
         modelAndView.addObject("cartQuantity", cartQuantity);
 
-        return super.view("product/details", modelAndView);
+        return super.view(PRODUCT_DETAILS, modelAndView);
     }
 
     @GetMapping("/edit/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize(ROLE_ADMIN)
     public ModelAndView editProduct(@PathVariable String id, ModelAndView modelAndView) {
         ProductServiceModel productServiceModel = this.iProductService.findProductById(id);
         ProductAddBindingModel model = this.modelMapper.map(productServiceModel, ProductAddBindingModel.class);
@@ -116,11 +118,11 @@ public class ProductController extends BaseController {
         modelAndView.addObject("product", model);
         modelAndView.addObject("productId", id);
 
-        return super.view("product/edit-product", modelAndView);
+        return super.view(PRODUCT_EDIT, modelAndView);
     }
 
     @PostMapping("/edit/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize(ROLE_ADMIN)
     public ModelAndView editProductConfirm(@PathVariable String id, @ModelAttribute ProductEditBindingModel productEditBindingModel) {
         this.iProductService.editProduct(
                 id,
@@ -132,7 +134,7 @@ public class ProductController extends BaseController {
     }
 
     @GetMapping("/delete/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize(ROLE_ADMIN)
     public ModelAndView deleteProduct(@PathVariable String id, ModelAndView modelAndView) {
         ProductServiceModel productServiceModel = this.iProductService.findProductById(id);
         ProductDeleteBindingModel model = this.modelMapper.map(productServiceModel, ProductDeleteBindingModel.class);
@@ -146,11 +148,11 @@ public class ProductController extends BaseController {
         modelAndView.addObject("categories", model);
         modelAndView.addObject("productId", id);
 
-        return super.view("product/delete-product", modelAndView);
+        return super.view(PRODUCT_DELETE, modelAndView);
     }
 
     @PostMapping("/delete/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize(ROLE_ADMIN)
     public ModelAndView deleteProductConfirm(@PathVariable String id) {
         this.iProductService.deleteProduct(id);
 
@@ -175,7 +177,7 @@ public class ProductController extends BaseController {
 
     @GetMapping("/top-offers")
     public ModelAndView topOffers(ModelAndView modelAndView){
-        return super.view("/product/top-offers", modelAndView);
+        return super.view(PRODUCT_TOP_OFFERS, modelAndView);
     }
 
     @GetMapping("/fetch/top-offers")
@@ -195,17 +197,14 @@ public class ProductController extends BaseController {
             for (DiscountViewModel topOffer : topOffers) {
                 if (topOffer.getProduct().getId().equals(discount.getProduct().getId())) {
                     int comparator = topOffer.getPrice().compareTo(discount.getPrice());
-                    switch (comparator) {
-                        case 0:
-                            topOffer.setCreator(topOffer.getCreator() + " and " + discount.getCreator());
-                            break;
-                        case 1:
-                            topOffer.setCreator(discount.getCreator());
-                            topOffer.setPrice(discount.getPrice());
-                            break;
-                        default:
-                            break;
+
+                    if(comparator == 0){
+                        topOffer.setCreator(topOffer.getCreator() + " and " + discount.getCreator());
+                    }else {
+                        topOffer.setCreator(discount.getCreator());
+                        topOffer.setPrice(discount.getPrice());
                     }
+
                     updated = true;
                     break;
                 }

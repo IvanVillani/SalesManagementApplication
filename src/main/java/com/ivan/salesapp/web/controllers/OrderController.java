@@ -1,5 +1,7 @@
 package com.ivan.salesapp.web.controllers;
 
+import com.ivan.salesapp.constants.RoleConstants;
+import com.ivan.salesapp.constants.ViewConstants;
 import com.ivan.salesapp.domain.models.service.RecordServiceModel;
 import com.ivan.salesapp.domain.models.view.OrderViewModel;
 import com.ivan.salesapp.domain.models.view.RecordViewModel;
@@ -18,7 +20,7 @@ import static java.util.stream.Collectors.toList;
 
 @RestController
 @RequestMapping("/orders")
-public class OrderController extends BaseController {
+public class OrderController extends BaseController implements RoleConstants, ViewConstants {
     private final IOrderService iOrderService;
     private final IRecordService iRecordService;
     private final ModelMapper modelMapper;
@@ -31,7 +33,7 @@ public class OrderController extends BaseController {
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize(ROLE_ADMIN)
     public ModelAndView getAllOrders(ModelAndView modelAndView) {
         List<OrderViewModel> orderViewModels = iOrderService.findAllOrders()
                 .stream()
@@ -40,17 +42,17 @@ public class OrderController extends BaseController {
 
         modelAndView.addObject("orders", orderViewModels);
 
-        return view("order/all-orders", modelAndView);
+        return view(ORDER_ALL, modelAndView);
     }
 
     @GetMapping("/all/details/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize(ROLE_ADMIN)
     public ModelAndView allOrderDetails(@PathVariable String id, ModelAndView modelAndView) {
         RecordViewModel record = this.modelMapper.map(this.iRecordService.retrieveRecordsByOrderId(id), RecordViewModel.class);
 
         modelAndView.addObject("record", record);
 
-        return super.view("order/order-details", modelAndView);
+        return super.view(ORDER_DETAILS, modelAndView);
     }
 
     @GetMapping("/my")
@@ -63,7 +65,7 @@ public class OrderController extends BaseController {
 
         modelAndView.addObject("orders", orderViewModels);
 
-        return view("order/all-orders", modelAndView);
+        return view(ORDER_ALL, modelAndView);
     }
 
     @GetMapping("/my/details/{id}")
@@ -72,7 +74,7 @@ public class OrderController extends BaseController {
         OrderViewModel orderViewModel = this.modelMapper.map(this.iOrderService.findOrderById(id), OrderViewModel.class);
         modelAndView.addObject("order", orderViewModel);
 
-        return super.view("order/order-details", modelAndView);
+        return super.view(ORDER_DETAILS, modelAndView);
     }
 
     @PostMapping("/search")
@@ -85,6 +87,6 @@ public class OrderController extends BaseController {
 
         modelAndView.addObject("orders", orderViewModels);
 
-        return view("order/all-orders", modelAndView);
+        return view(ORDER_ALL, modelAndView);
     }
 }

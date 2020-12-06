@@ -4,11 +4,10 @@ import com.ivan.salesapp.domain.entities.User;
 import com.ivan.salesapp.domain.models.service.RoleServiceModel;
 import com.ivan.salesapp.domain.models.service.UserServiceModel;
 import com.ivan.salesapp.domain.models.view.UserAllViewModel;
-import com.ivan.salesapp.enums.RoleEnum;
+import com.ivan.salesapp.enums.UserRole;
 import com.ivan.salesapp.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -44,7 +43,7 @@ public class UserService implements IUserService {
         this.iRoleService.seedRolesInDB();
         if (this.userRepository.count() == 0) {
             userServiceModel.setAuthorities(this.iRoleService.findAllRoles());
-        }else {
+        } else {
             userServiceModel.setAuthorities(new LinkedHashSet<>());
 
             userServiceModel.getAuthorities().add(this.iRoleService.findByAuthority("ROLE_CLIENT"));
@@ -74,7 +73,7 @@ public class UserService implements IUserService {
     public UserServiceModel editUserProfile(UserServiceModel userServiceModel, String oldPassword) {
         User user = this.userRepository.findByUsername(userServiceModel.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("Username not found!"));
-        if(!this.bCryptPasswordEncoder.matches(oldPassword, user.getPassword())){
+        if (!this.bCryptPasswordEncoder.matches(oldPassword, user.getPassword())) {
             throw new IllegalArgumentException("Incorrect password!");
         }
 
@@ -107,9 +106,9 @@ public class UserService implements IUserService {
 
     @Override
     public List<UserServiceModel> findAllUsers() {
-        return this.userRepository.findAll().stream()
-                .map(u -> this.modelMapper
-                        .map(u, UserServiceModel.class)).collect(toList());
+        return this.userRepository.findAll()
+                .stream()
+                .map(u -> this.modelMapper.map(u, UserServiceModel.class)).collect(toList());
     }
 
     @Override
@@ -131,7 +130,7 @@ public class UserService implements IUserService {
 
         userServiceModel.getAuthorities().clear();
 
-        RoleEnum authority = RoleEnum.get(role);
+        UserRole authority = UserRole.get(role);
 
         userServiceModel.getAuthorities().add(this.iRoleService.findByAuthority(authority.toString()));
 
@@ -140,19 +139,19 @@ public class UserService implements IUserService {
 
     @Override
     public List<UserAllViewModel> getUsersBasedOnAuthority(String authority) {
-        if (authority != null){
+        if (authority != null) {
             return this.findAllUsers()
                     .stream()
                     .filter(u -> new ArrayList<>(u.getAuthorities()).size() == 1)
                     .filter(u -> new ArrayList<>(u.getAuthorities()).get(0).getAuthority().equals(authority))
                     .map(mapToViewModelSetCategories(this.modelMapper))
                     .collect(toList());
-        }else{
-            return this.findAllUsers()
-                    .stream()
-                    .map(mapToViewModelSetCategories(this.modelMapper))
-                    .collect(toList());
         }
+        return this.findAllUsers()
+                .stream()
+                .map(mapToViewModelSetCategories(this.modelMapper))
+                .collect(toList());
+
     }
 
     private static Function<UserServiceModel, UserAllViewModel> mapToViewModelSetCategories(ModelMapper modelMapper) {
@@ -160,7 +159,7 @@ public class UserService implements IUserService {
             UserAllViewModel user = modelMapper.map(u, UserAllViewModel.class);
             if (u.getAuthorities().size() > 1) {
                 user.setAuthorities(new LinkedHashSet<>());
-                user.getAuthorities().add("ROOT");
+                user.getAuthorities().add(UserRole.ROOT.getRole().toUpperCase());
             } else {
                 user.setAuthorities(u.getAuthorities()
                         .stream()

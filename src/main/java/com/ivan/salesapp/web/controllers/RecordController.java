@@ -1,5 +1,6 @@
 package com.ivan.salesapp.web.controllers;
 
+import com.ivan.salesapp.constants.ViewConstants;
 import com.ivan.salesapp.domain.entities.Order;
 import com.ivan.salesapp.domain.models.service.OrderServiceModel;
 import com.ivan.salesapp.domain.models.service.RecordServiceModel;
@@ -27,7 +28,7 @@ import static java.util.stream.Collectors.toList;
 
 @RestController
 @RequestMapping("/records")
-public class RecordController extends BaseController {
+public class RecordController extends BaseController implements ViewConstants {
     private final IRecordService iRecordService;
     private final IOrderService iOrderService;
     private final IUserService iUserService;
@@ -51,7 +52,7 @@ public class RecordController extends BaseController {
         modelAndView.addObject("records", models);
         modelAndView.addObject("order", orderServiceModel);
 
-        return super.view("order/order-record", modelAndView);
+        return super.view(ORDER_RECORD, modelAndView);
     }
 
     @GetMapping("/sales")
@@ -61,7 +62,7 @@ public class RecordController extends BaseController {
 
         modelAndView.addObject("sales", sales);
 
-        return super.view("order/all-sales", modelAndView);
+        return super.view(ORDER_ALL_SALES, modelAndView);
     }
 
     @PostMapping("/sales/search")
@@ -71,7 +72,7 @@ public class RecordController extends BaseController {
 
         modelAndView.addObject("sales", findSalesInRange(start, end, sales));
 
-        return view("order/all-sales", modelAndView);
+        return view(ORDER_ALL_SALES, modelAndView);
     }
 
     private List<Sale> findSalesInRange(String start, String end, List<Sale> sales){

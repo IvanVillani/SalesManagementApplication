@@ -3,29 +3,29 @@ package com.ivan.salesapp.enums;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum RoleEnum {
+public enum UserRole {
     CLIENT("client"), RESELLER("reseller"), ADMIN("admin"), ROOT("root");
 
     private String value;
 
-    RoleEnum(String value) {
+    UserRole(String value) {
         this.value = value;
     }
 
-    public String getSmall() {
+    public String getRole() {
         return value;
     }
 
-    private static final Map<String, RoleEnum> lookup = new HashMap<>();
+    private static final Map<String, UserRole> lookup = new HashMap<>();
 
     static {
-        for(RoleEnum role : RoleEnum.values())
+        for(UserRole role : UserRole.values())
         {
-            lookup.put(role.getSmall(), role);
+            lookup.put(role.getRole(), role);
         }
     }
 
-    public static RoleEnum get(String role)
+    public static UserRole get(String role)
     {
         return lookup.get(role);
     }

@@ -1,5 +1,6 @@
 package com.ivan.salesapp.services;
 
+import com.ivan.salesapp.constants.ExceptionMessageConstants;
 import com.ivan.salesapp.domain.entities.Discount;
 import com.ivan.salesapp.domain.entities.Product;
 import com.ivan.salesapp.domain.entities.User;
@@ -24,7 +25,7 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.toList;
 
 @Service
-public class DiscountService implements IDiscountService {
+public class DiscountService implements IDiscountService, ExceptionMessageConstants {
 
     private final DiscountRepository discountRepository;
     private final IProductService iProductService;
@@ -84,7 +85,7 @@ public class DiscountService implements IDiscountService {
     @Override
     public void editProductDiscount(DiscountServiceModel model) {
         Discount discount = this.discountRepository.findById(model.getId())
-                .orElseThrow(() -> new IllegalArgumentException("No such discount!"));
+                .orElseThrow(() -> new IllegalArgumentException(ExceptionMessageConstants.DISCOUNT_NOT_FOUND_EDIT));
 
         discount.setPrice(model.getPrice());
 
@@ -94,7 +95,7 @@ public class DiscountService implements IDiscountService {
     @Override
     public void deleteDiscount(String id) {
         Discount discount = this.discountRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("No such Discount!"));
+                .orElseThrow(() -> new IllegalArgumentException(ExceptionMessageConstants.DISCOUNT_NOT_FOUND_DELETE));
 
         this.discountRepository.delete(discount);
     }
@@ -102,7 +103,7 @@ public class DiscountService implements IDiscountService {
     @Override
     public DiscountServiceModel findDiscountById(String id) {
         Discount discount = this.discountRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("No such Discount!"));
+                .orElseThrow(() -> new IllegalArgumentException(ExceptionMessageConstants.DISCOUNT_NOT_FOUND));
 
         return this.modelMapper.map(discount, DiscountServiceModel.class);
     }
