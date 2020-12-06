@@ -6,11 +6,24 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "discounts")
 public class Discount extends BaseEntity {
-
+    private User creator;
     private Product product;
     private BigDecimal price;
 
     public Discount() {
+    }
+
+    @ManyToOne(targetEntity = User.class)
+    @JoinColumn(
+            name = "user_id",
+            referencedColumnName = "id"
+    )
+    public User getCreator() {
+        return creator;
+    }
+
+    public void setCreator(User creator) {
+        this.creator = creator;
     }
 
     @ManyToOne(targetEntity = Product.class)
@@ -34,4 +47,5 @@ public class Discount extends BaseEntity {
     public void setPrice(BigDecimal price) {
         this.price = price;
     }
+
 }

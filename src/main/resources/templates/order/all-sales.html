@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <th:block th:include="~{fragments/head}"></th:block>
+</head>
+<body>
+<header>
+    <th:block th:include="~{fragments/navbar}"></th:block>
+</header>
+<main class="mt-3">
+    <div class="row">
+        <div class="col"></div>
+        <div class="col-10">
+            <div class="row">
+                <div class="col-5"><h1 class="text-left text-dark">Orders</h1></div>
+                <div class="col-5">
+                    <form id="add-category-form" class="form w-75 mx-auto" th:action="@{/records/sales/search}" th:method="post">
+                        <div class="row">
+                            <div class="col-9">
+                                <div class="rounded input-daterange input-group" id="datepicker">
+                                    <input type="text" class="input-sm form-control" name="start" required/>
+                                    <span class="input-group-addon">to</span>
+                                    <input type="text" class="input-sm form-control" name="end" required/>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="button-holder d-flex justify-content-center">
+                                    <button type="submit" class="btn btn-secondary">Search</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr class="hr-2 bg-dark w-75">
+    <table class="table table-hover w-75 mx-auto">
+        <thead>
+        <tr class="row mx-auto">
+            <th class="col-md-1 text-center">#</th>
+            <th class="col-md-2 text-center">Customer</th>
+            <th class="col-md-2 text-center">Product</th>
+            <th class="col-md-2 text-center">Date</th>
+            <th class="col-md-2 text-center">Discount</th>
+            <th class="col-md-1 text-center">Quantity</th>
+            <th class="col-md-2 text-center">Total Price</th>
+        </tr>
+        </thead>
+        <tbody>
+        <th:block th:each="sale, iter : ${sales}" th:object="${sale}">
+            <tr class="row mx-auto">
+                <th class="col-md-1 text-center" th:text="${iter.index + 1}"></th>
+                <td class="col-md-2 text-center" th:text="*{customer}"></td>
+                <td class="col-md-2 text-center" th:text="*{product}"></td>
+                <td class="col-md-2 text-center" th:text="*{#temporals.format(registerDate, 'dd-MM-yyyy HH:mm') }"></td>
+                <td class="col-md-2 text-center" th:text="*{discount}"></td>
+                <td class="col-md-1 text-center" th:text="*{quantity}"></td>
+                <td class="col-md-2 text-center" th:text="*{price}"></td>
+            </tr>
+        </th:block>
+        </tbody>
+    </table>
+    <hr class="hr-2 bg-dark">
+</main>
+<footer>
+    <th:block th:include="~{fragments/footer}"></th:block>
+</footer>
+</body>
+<script>
+    $('#datepicker').datepicker({
+        format: "dd/mm/yyyy",
+        timepicker: true,
+        datepicker: true
+    });
+</script>
+</html>

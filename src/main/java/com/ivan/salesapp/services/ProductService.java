@@ -6,6 +6,7 @@ import com.ivan.salesapp.domain.models.service.ProductServiceModel;
 import com.ivan.salesapp.repository.ProductRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,10 +30,10 @@ public class ProductService implements IProductService {
     }
 
     @Override
-    public ProductServiceModel addProduct(ProductServiceModel productServiceModel) {
+    public void addProduct(ProductServiceModel productServiceModel) {
         Product product = this.modelMapper.map(productServiceModel, Product.class);
 
-        return this.modelMapper.map(this.productRepository.saveAndFlush(product), ProductServiceModel.class);
+        this.productRepository.saveAndFlush(product);
     }
 
     @Override
@@ -51,7 +52,7 @@ public class ProductService implements IProductService {
     }
 
     @Override
-    public ProductServiceModel editProduct(String id, ProductServiceModel productServiceModel, List<String> categories) {
+    public void editProduct(String id, ProductServiceModel productServiceModel, List<String> categories) {
         Product product = this.productRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Incorrect id!"));
 
@@ -68,7 +69,7 @@ public class ProductService implements IProductService {
         product.setCategories(newCategories);
 
 
-        return this.modelMapper.map(this.productRepository.saveAndFlush(product), ProductServiceModel.class);
+        this.productRepository.saveAndFlush(product);
     }
 
     @Override

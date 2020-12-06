@@ -14,29 +14,28 @@
     <form id="add-product-form" class="form w-25 mx-auto" th:action="@{/products/add}" th:method="post" enctype="multipart/form-data"><input type="hidden" name="_csrf" value="c686cd14-a7f9-4216-8009-c093b7d3df86">
         <div class="form-group">
             <label for="add-product-name" class="font-weight-bold">Name</label>
-            <input type="text" class="form-control text-center" id="add-product-name" name="name">
+            <input type="text" class="form-control text-center" id="add-product-name" name="name" required>
         </div>
         <div class="form-group">
             <label for="add-product-description" class="font-weight-bold">Description</label>
-            <textarea name="description" id="add-product-description" class="form-control" rows="5"></textarea>
+            <textarea name="description" id="add-product-description" class="word-wrap form-control" rows="5" required></textarea>
         </div>
         <div class="form-group">
             <label for="add-product-price" class="font-weight-bold">Price</label>
-            <input type="number" step="any" class="form-control text-center" id="add-product-price" name="price">
+            <input type="number" step="any" class="form-control text-center" id="add-product-price" name="price" required>
         </div>
         <div class="form-group">
             <label for="add-product-stock" class="font-weight-bold">Stock</label>
-            <input type="number" step="any" class="form-control text-center" id="add-product-stock" name="stock">
+            <input type="number" step="any" class="form-control text-center" id="add-product-stock" name="stock" required>
         </div>
         <div class="form-group">
             <label for="add-product-categories" class="font-weight-bold">Categories</label>
-            <select multiple="" class="form-control" id="add-product-categories" name="categories">
-                <option selected="" disabled="">--- Select Categories ---</option>
+            <select multiple="" class="form-control" id="add-product-categories" name="categories" required>
             </select>
         </div>
         <div class="form-group">
             <label for="add-product-image" class="font-weight-bold">Image</label>
-            <input type="file" class="form-control-file" id="add-product-image" name="image">
+            <input type="file" class="form-control-file" id="add-product-image" name="image" required>
         </div>
         <hr class="hr-2 bg-dark w-25">
         <div class="button-holder d-flex justify-content-center">

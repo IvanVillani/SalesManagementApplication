@@ -1,3 +1,7 @@
+.word-wrap{
+    word-wrap: break-word;
+}
+
 hr.hr-2 {
     height: 2px;
 }
