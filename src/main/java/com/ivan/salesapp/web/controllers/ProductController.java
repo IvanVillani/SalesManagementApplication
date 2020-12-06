@@ -200,7 +200,7 @@ public class ProductController extends BaseController implements RoleConstants, 
 
                     if(comparator == 0){
                         topOffer.setCreator(topOffer.getCreator() + " and " + discount.getCreator());
-                    }else {
+                    }else if (comparator > 0){
                         topOffer.setCreator(discount.getCreator());
                         topOffer.setPrice(discount.getPrice());
                     }
