@@ -59,6 +59,7 @@ public class ProductService implements IProductService {
         product.setName(productServiceModel.getName());
         product.setDescription(productServiceModel.getDescription());
         product.setPrice(productServiceModel.getPrice());
+        product.setStock(productServiceModel.getStock());
 
         List<Category> newCategories = this.iCategoryService.findAllCategories()
                 .stream()
