@@ -9,6 +9,8 @@ import com.ivan.salesapp.domain.models.view.DiscountProductViewModel;
 import com.ivan.salesapp.domain.models.view.DiscountViewModel;
 import com.ivan.salesapp.domain.models.view.ProductDetailsViewModel;
 import com.ivan.salesapp.domain.models.view.ShoppingCartItem;
+import com.ivan.salesapp.exceptions.DiscountNotFoundException;
+import com.ivan.salesapp.exceptions.ProductNotFoundException;
 import com.ivan.salesapp.services.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +51,7 @@ public class CartController extends BaseController implements RoleConstants, Vie
 
     @PostMapping("/add-product")
     @PreAuthorize(ROLE_CLIENT)
-    public ModelAndView addProductToCart(String productId, String discountId, int quantity, HttpSession session) {
+    public ModelAndView addProductToCart(String productId, String discountId, int quantity, HttpSession session) throws ProductNotFoundException, DiscountNotFoundException {
         ProductDetailsViewModel product = this.modelMapper
                 .map(this.iProductService.findProductById(productId), ProductDetailsViewModel.class);
 
@@ -98,7 +100,7 @@ public class CartController extends BaseController implements RoleConstants, Vie
 
     @PostMapping("/checkout")
     @PreAuthorize(ROLE_CLIENT)
-    public ModelAndView checkoutConfirm(HttpSession session, Principal principal) {
+    public ModelAndView checkoutConfirm(HttpSession session, Principal principal) throws ProductNotFoundException {
         List<ShoppingCartItem> cartItems = this.retrieveCart(session);
 
         List<RecordServiceModel> models = extractDataIntoRecordServiceModel(cartItems);

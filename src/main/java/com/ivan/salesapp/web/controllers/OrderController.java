@@ -5,6 +5,8 @@ import com.ivan.salesapp.constants.ViewConstants;
 import com.ivan.salesapp.domain.models.service.RecordServiceModel;
 import com.ivan.salesapp.domain.models.view.OrderViewModel;
 import com.ivan.salesapp.domain.models.view.RecordViewModel;
+import com.ivan.salesapp.exceptions.OrderNotFoundException;
+import com.ivan.salesapp.exceptions.RecordNotFoundException;
 import com.ivan.salesapp.services.IOrderService;
 import com.ivan.salesapp.services.IRecordService;
 import org.modelmapper.ModelMapper;
@@ -47,7 +49,7 @@ public class OrderController extends BaseController implements RoleConstants, Vi
 
     @GetMapping("/all/details/{id}")
     @PreAuthorize(ROLE_ADMIN)
-    public ModelAndView allOrderDetails(@PathVariable String id, ModelAndView modelAndView) {
+    public ModelAndView allOrderDetails(@PathVariable String id, ModelAndView modelAndView) throws RecordNotFoundException {
         RecordViewModel record = this.modelMapper.map(this.iRecordService.retrieveRecordsByOrderId(id), RecordViewModel.class);
 
         modelAndView.addObject("record", record);
@@ -70,7 +72,7 @@ public class OrderController extends BaseController implements RoleConstants, Vi
 
     @GetMapping("/my/details/{id}")
     @PreAuthorize("isAuthenticated()")
-    public ModelAndView myOrderDetails(@PathVariable String id, ModelAndView modelAndView) {
+    public ModelAndView myOrderDetails(@PathVariable String id, ModelAndView modelAndView) throws OrderNotFoundException {
         OrderViewModel orderViewModel = this.modelMapper.map(this.iOrderService.findOrderById(id), OrderViewModel.class);
         modelAndView.addObject("order", orderViewModel);
 

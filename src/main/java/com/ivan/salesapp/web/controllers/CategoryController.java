@@ -5,8 +5,11 @@ import com.ivan.salesapp.constants.ViewConstants;
 import com.ivan.salesapp.domain.models.binding.CategoryAddBindingModel;
 import com.ivan.salesapp.domain.models.service.CategoryServiceModel;
 import com.ivan.salesapp.domain.models.view.CategoryViewModel;
+import com.ivan.salesapp.exceptions.CategoryNotFoundException;
+import com.ivan.salesapp.exceptions.InvalidCategoryException;
 import com.ivan.salesapp.services.ICategoryService;
 import com.ivan.salesapp.services.IProductService;
+import com.ivan.salesapp.services.validation.ICategoryValidationService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,24 +25,30 @@ import static java.util.stream.Collectors.toList;
 public class CategoryController extends BaseController implements RoleConstants, ViewConstants {
     private final ICategoryService iCategoryService;
     private final IProductService iProductService;
+    private final ICategoryValidationService iCategoryValidationService;
     private final ModelMapper modelMapper;
 
     @Autowired
-    public CategoryController(ICategoryService iCategoryService, IProductService iProductService, ModelMapper modelMapper) {
+    public CategoryController(ICategoryService iCategoryService, IProductService iProductService, ICategoryValidationService iCategoryValidationService, ModelMapper modelMapper) {
         this.iCategoryService = iCategoryService;
         this.iProductService = iProductService;
+        this.iCategoryValidationService = iCategoryValidationService;
         this.modelMapper = modelMapper;
     }
 
     @GetMapping("/add")
     @PreAuthorize(ROLE_ADMIN)
-    public ModelAndView addCategory() {
-        return super.view(CATEGORY_ADD);
+    public ModelAndView addCategory(ModelAndView modelAndView) {
+        modelAndView.addObject("error", "");
+
+        return super.view(CATEGORY_ADD, modelAndView);
     }
 
     @PostMapping("/add")
     @PreAuthorize(ROLE_ADMIN)
-    public ModelAndView addCategoryConfirm(@ModelAttribute CategoryAddBindingModel model) {
+    public ModelAndView addCategoryConfirm(@ModelAttribute CategoryAddBindingModel model) throws InvalidCategoryException {
+        this.iCategoryValidationService.isNewCategoryValid(model, CATEGORY_ADD);
+
         this.iCategoryService.addCategory(this.modelMapper.map(model, CategoryServiceModel.class));
 
         return super.redirect("/categories/all");
@@ -58,8 +67,8 @@ public class CategoryController extends BaseController implements RoleConstants,
     }
 
     @GetMapping("/edit/{id}")
-    @PreAuthorize(ROLE_RESELLER)
-    public ModelAndView editCategory(@PathVariable String id, ModelAndView modelAndView) {
+    @PreAuthorize(ROLE_ADMIN)
+    public ModelAndView editCategory(@PathVariable String id, ModelAndView modelAndView) throws CategoryNotFoundException {
         modelAndView.addObject("model", this.modelMapper
                 .map(this.iCategoryService.findCategoryById(id), CategoryViewModel.class));
 
@@ -67,16 +76,18 @@ public class CategoryController extends BaseController implements RoleConstants,
     }
 
     @PostMapping("/edit/{id}")
-    @PreAuthorize(ROLE_RESELLER)
-    public ModelAndView editCategoryConfirm(@PathVariable String id, @ModelAttribute CategoryAddBindingModel model) {
+    @PreAuthorize(ROLE_ADMIN)
+    public ModelAndView editCategoryConfirm(@PathVariable String id, @ModelAttribute CategoryAddBindingModel model) throws InvalidCategoryException, CategoryNotFoundException {
+        this.iCategoryValidationService.isEditedCategoryValid(model, id, CATEGORY_EDIT);
+
         this.iCategoryService.editCategory(id, this.modelMapper.map(model, CategoryServiceModel.class));
 
         return super.redirect("/categories/all");
     }
 
     @GetMapping("/delete/{id}")
-    @PreAuthorize(ROLE_RESELLER)
-    public ModelAndView deleteCategory(@PathVariable String id, ModelAndView modelAndView) {
+    @PreAuthorize(ROLE_ADMIN)
+    public ModelAndView deleteCategory(@PathVariable String id, ModelAndView modelAndView) throws CategoryNotFoundException {
         modelAndView.addObject("model", this.modelMapper
                 .map(this.iCategoryService.findCategoryById(id), CategoryViewModel.class));
 
@@ -84,8 +95,8 @@ public class CategoryController extends BaseController implements RoleConstants,
     }
 
     @PostMapping("/delete/{id}")
-    @PreAuthorize(ROLE_RESELLER)
-    public ModelAndView deleteCategoryConfirm(@PathVariable String id) {
+    @PreAuthorize(ROLE_ADMIN)
+    public ModelAndView deleteCategoryConfirm(@PathVariable String id) throws CategoryNotFoundException {
         this.iCategoryService.deleteCategory(id, this.iProductService);
 
         return super.redirect("/categories/all");

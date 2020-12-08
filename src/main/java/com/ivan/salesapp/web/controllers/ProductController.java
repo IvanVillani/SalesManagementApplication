@@ -13,6 +13,7 @@ import com.ivan.salesapp.domain.models.view.DiscountViewModel;
 import com.ivan.salesapp.domain.models.view.ProductAllViewModel;
 import com.ivan.salesapp.domain.models.view.ProductDetailsViewModel;
 import com.ivan.salesapp.domain.models.view.ShoppingCartItem;
+import com.ivan.salesapp.exceptions.ProductNotFoundException;
 import com.ivan.salesapp.services.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +84,7 @@ public class ProductController extends BaseController implements RoleConstants, 
     }
 
     @GetMapping("/details/{id}")
-    public ModelAndView detailsProduct(@PathVariable String id, HttpSession session, ModelAndView modelAndView) {
+    public ModelAndView detailsProduct(@PathVariable String id, HttpSession session, ModelAndView modelAndView) throws ProductNotFoundException {
         modelAndView.addObject("product", this.modelMapper
                 .map(this.iProductService.findProductById(id), ProductDetailsViewModel.class));
 
@@ -106,7 +107,7 @@ public class ProductController extends BaseController implements RoleConstants, 
 
     @GetMapping("/edit/{id}")
     @PreAuthorize(ROLE_ADMIN)
-    public ModelAndView editProduct(@PathVariable String id, ModelAndView modelAndView) {
+    public ModelAndView editProduct(@PathVariable String id, ModelAndView modelAndView) throws ProductNotFoundException {
         ProductServiceModel productServiceModel = this.iProductService.findProductById(id);
         ProductAddBindingModel model = this.modelMapper.map(productServiceModel, ProductAddBindingModel.class);
 
@@ -123,7 +124,7 @@ public class ProductController extends BaseController implements RoleConstants, 
 
     @PostMapping("/edit/{id}")
     @PreAuthorize(ROLE_ADMIN)
-    public ModelAndView editProductConfirm(@PathVariable String id, @ModelAttribute ProductEditBindingModel productEditBindingModel) {
+    public ModelAndView editProductConfirm(@PathVariable String id, @ModelAttribute ProductEditBindingModel productEditBindingModel) throws ProductNotFoundException {
         this.iProductService.editProduct(
                 id,
                 this.modelMapper.map(productEditBindingModel, ProductServiceModel.class),
@@ -135,7 +136,7 @@ public class ProductController extends BaseController implements RoleConstants, 
 
     @GetMapping("/delete/{id}")
     @PreAuthorize(ROLE_ADMIN)
-    public ModelAndView deleteProduct(@PathVariable String id, ModelAndView modelAndView) {
+    public ModelAndView deleteProduct(@PathVariable String id, ModelAndView modelAndView) throws ProductNotFoundException {
         ProductServiceModel productServiceModel = this.iProductService.findProductById(id);
         ProductDeleteBindingModel model = this.modelMapper.map(productServiceModel, ProductDeleteBindingModel.class);
 
@@ -153,7 +154,7 @@ public class ProductController extends BaseController implements RoleConstants, 
 
     @PostMapping("/delete/{id}")
     @PreAuthorize(ROLE_ADMIN)
-    public ModelAndView deleteProductConfirm(@PathVariable String id) {
+    public ModelAndView deleteProductConfirm(@PathVariable String id) throws ProductNotFoundException {
         this.iProductService.deleteProduct(id);
 
         return super.redirect("/products/all");

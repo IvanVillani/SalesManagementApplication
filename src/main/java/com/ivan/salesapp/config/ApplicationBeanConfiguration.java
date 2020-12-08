@@ -42,17 +42,17 @@ public class ApplicationBeanConfiguration implements MailSenderConstants {
     @Bean
     public JavaMailSender getJavaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost(MailSenderConstants.HOST);
-        mailSender.setPort(MailSenderConstants.PORT);
+        mailSender.setHost(HOST);
+        mailSender.setPort(PORT);
 
-        mailSender.setUsername(MailSenderConstants.USERNAME);
-        mailSender.setPassword(MailSenderConstants.PASSWORD);
+        mailSender.setUsername(USERNAME);
+        mailSender.setPassword(PASSWORD);
 
         Properties props = mailSender.getJavaMailProperties();
-        props.put(MailSenderConstants.SMTP, "smtp");
-        props.put(MailSenderConstants.AUTH, "true");
-        props.put(MailSenderConstants.TLS, "true");
-        props.put(MailSenderConstants.DEBUG, "true");
+        props.put(SMTP, "smtp");
+        props.put(AUTH, "true");
+        props.put(TLS, "true");
+        props.put(DEBUG, "true");
 
         return mailSender;
     }

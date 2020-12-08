@@ -1,6 +1,7 @@
 package com.ivan.salesapp.services;
 
 import com.ivan.salesapp.domain.models.service.CategoryServiceModel;
+import com.ivan.salesapp.exceptions.CategoryNotFoundException;
 
 import java.util.List;
 
@@ -9,9 +10,11 @@ public interface ICategoryService {
 
     List<CategoryServiceModel> findAllCategories();
 
-    CategoryServiceModel findCategoryById(String id);
+    CategoryServiceModel findCategoryById(String id) throws CategoryNotFoundException;
 
-    void editCategory(String id, CategoryServiceModel categoryServiceModel);
+    CategoryServiceModel findCategoryByName(String name) throws CategoryNotFoundException;
 
-    void deleteCategory(String id, IProductService iProductService);
+    void editCategory(String id, CategoryServiceModel categoryServiceModel) throws CategoryNotFoundException;
+
+    void deleteCategory(String id, IProductService iProductService) throws CategoryNotFoundException;
 }

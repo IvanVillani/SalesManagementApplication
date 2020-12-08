@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <th:block th:include="~{fragments/head}"></th:block>
+</head>
+<body>
+<header>
+    <th:block th:include="~{fragments/navbar}"></th:block>
+</header>
+<main class="mt-3">
+    <h1 class="text-center text-dark">Share your discount</h1>
+    <hr class="hr-2 bg-dark w-25">
+    <div class="row">
+        <div class="col-3 text-center"></div>
+
+        <div class="col-6 text-center">
+            <div class="row">
+                <div class="col-4 text-center"></div>
+
+                <div class="col-4 text-center">
+                    <a th:href="@{/discounts/tweet/{id}(id=${discount.id})}" class="btn btn-info font-weight-bold" style="margin-bottom: 1em">Share on Twitter</a>
+                    <a th:href="@{/discounts/my}" class="btn btn-secondary">No Thanks</a>
+                </div>
+
+                <div class="col-4 text-center"></div>
+            </div>
+        </div>
+
+        <div class="col-3 text-center"></div>
+    </div>
+</main>
+<footer>
+    <th:block th:include="~{fragments/footer}"></th:block>
+</footer>
+</body>
+</html>

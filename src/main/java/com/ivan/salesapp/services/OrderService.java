@@ -7,6 +7,8 @@ import com.ivan.salesapp.domain.entities.Order;
 import com.ivan.salesapp.domain.entities.Product;
 import com.ivan.salesapp.domain.models.service.OrderServiceModel;
 import com.ivan.salesapp.domain.models.service.RecordServiceModel;
+import com.ivan.salesapp.exceptions.OrderNotFoundException;
+import com.ivan.salesapp.exceptions.ProductNotFoundException;
 import com.ivan.salesapp.repository.OrderRepository;
 import com.ivan.salesapp.repository.ProductRepository;
 import org.modelmapper.MappingException;
@@ -105,19 +107,19 @@ public class OrderService implements IOrderService, MailSenderConstants, Excepti
     }
 
     @Override
-    public OrderServiceModel findOrderById(String id) {
+    public OrderServiceModel findOrderById(String id) throws OrderNotFoundException {
         return this.orderRepository.findById(id)
                 .map(o -> this.modelMapper.map(o, OrderServiceModel.class))
                 .orElseThrow(() ->
-                        new IllegalArgumentException(String.format(ExceptionMessageConstants.ORDER_NOT_FOUND, id)));
+                        new OrderNotFoundException(String.format(ORDER_NOT_FOUND, id)));
     }
 
     @Async
     @Override
-    public void updateProductsStock(List<RecordServiceModel> records){
+    public void updateProductsStock(List<RecordServiceModel> records) throws ProductNotFoundException {
         for (RecordServiceModel record : records) {
             Product product = this.productRepository.findById(record.getProduct().getId())
-                    .orElseThrow(() -> new IllegalArgumentException(ExceptionMessageConstants.PRODUCT_TO_UPDATE_NOT_FOUND));
+                    .orElseThrow(() -> new ProductNotFoundException(PRODUCT_TO_UPDATE_NOT_FOUND));
 
             product.setStock(product.getStock() - record.getFullQuantity());
         }
@@ -125,10 +127,10 @@ public class OrderService implements IOrderService, MailSenderConstants, Excepti
 
     @Async
     @Override
-    public void checkStockAndNotifyByMail(List<RecordServiceModel> records){
+    public void checkStockAndNotifyByMail(List<RecordServiceModel> records) throws ProductNotFoundException {
         for (RecordServiceModel record : records) {
             Product product = this.productRepository.findById(record.getProduct().getId())
-                    .orElseThrow(() -> new IllegalArgumentException(ExceptionMessageConstants.PRODUCT_TO_UPDATE_NOT_FOUND));
+                    .orElseThrow(() -> new ProductNotFoundException(PRODUCT_TO_UPDATE_NOT_FOUND));
 
             if (product.getStock() <= 10){
                 String subject = String.format(MailSenderConstants.MESSAGE_SUBJECT, product.getName());

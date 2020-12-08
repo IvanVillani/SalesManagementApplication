@@ -8,6 +8,8 @@ import com.ivan.salesapp.domain.models.view.OfferViewModel;
 import com.ivan.salesapp.domain.models.view.OrderViewModel;
 import com.ivan.salesapp.domain.models.view.RecordViewModel;
 import com.ivan.salesapp.domain.models.view.Sale;
+import com.ivan.salesapp.exceptions.OrderNotFoundException;
+import com.ivan.salesapp.exceptions.RecordNotFoundException;
 import com.ivan.salesapp.services.IOrderService;
 import com.ivan.salesapp.services.IRecordService;
 import com.ivan.salesapp.services.IUserService;
@@ -44,7 +46,7 @@ public class RecordController extends BaseController implements ViewConstants {
 
     @GetMapping("/details/{id}")
     @PreAuthorize("isAuthenticated()")
-    public ModelAndView orderDetails(@PathVariable String id, ModelAndView modelAndView){
+    public ModelAndView orderDetails(@PathVariable String id, ModelAndView modelAndView) throws RecordNotFoundException, OrderNotFoundException {
         List<RecordViewModel> models = this.iRecordService.retrieveRecordsByOrderId(id);
 
         OrderServiceModel orderServiceModel = this.iOrderService.findOrderById(id);
@@ -57,7 +59,7 @@ public class RecordController extends BaseController implements ViewConstants {
 
     @GetMapping("/sales")
     @PreAuthorize("isAuthenticated()")
-    public ModelAndView resellerSales(Principal principal, ModelAndView modelAndView){
+    public ModelAndView resellerSales(Principal principal, ModelAndView modelAndView) throws RecordNotFoundException {
         List<Sale> sales = this.iRecordService.retrieveSalesByUserUsername(principal.getName());
 
         modelAndView.addObject("sales", sales);
@@ -67,7 +69,7 @@ public class RecordController extends BaseController implements ViewConstants {
 
     @PostMapping("/sales/search")
     @PreAuthorize("isAuthenticated()")
-    public ModelAndView searchSales(String start, String end, Principal principal, ModelAndView modelAndView){
+    public ModelAndView searchSales(String start, String end, Principal principal, ModelAndView modelAndView) throws RecordNotFoundException {
         List<Sale> sales = this.iRecordService.retrieveSalesByUserUsername(principal.getName());
 
         modelAndView.addObject("sales", findSalesInRange(start, end, sales));

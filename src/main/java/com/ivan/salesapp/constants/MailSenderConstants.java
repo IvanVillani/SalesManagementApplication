@@ -5,7 +5,7 @@ public interface MailSenderConstants {
     int PORT = 587;
 
     String USERNAME = "design.your.home.store@gmail.com";
-    String PASSWORD = "designyourhome";
+    String PASSWORD = "designyourhomenow";
 
     String SMTP = "mail.transport.protocol";
     String AUTH = "mail.smtp.auth";
