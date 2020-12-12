@@ -8,6 +8,7 @@ import com.ivan.salesapp.domain.models.binding.DiscountAddBindingModel;
 import com.ivan.salesapp.domain.models.service.DiscountServiceModel;
 import com.ivan.salesapp.domain.models.service.ProductServiceModel;
 import com.ivan.salesapp.domain.models.service.UserServiceModel;
+import com.ivan.salesapp.exceptions.DiscountNotFoundException;
 import com.ivan.salesapp.repository.DiscountRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +66,7 @@ public class DiscountService implements IDiscountService, ExceptionMessageConsta
     }
 
     @Override
-    public void discountProduct(String productId, DiscountAddBindingModel discountAddBindingModel, UserServiceModel userServiceModel) {
+    public DiscountServiceModel discountProduct(String productId, DiscountAddBindingModel discountAddBindingModel, UserServiceModel userServiceModel) {
         Product product = iProductService.findAllProducts()
                 .stream()
                 .filter(p -> p.getId().equals(productId))
@@ -80,30 +81,34 @@ public class DiscountService implements IDiscountService, ExceptionMessageConsta
         discount.setPrice(discountAddBindingModel.getPrice());
 
         this.discountRepository.saveAndFlush(discount);
+
+        return this.modelMapper.map(discount, DiscountServiceModel.class);
     }
 
     @Override
-    public void editProductDiscount(DiscountServiceModel model) {
+    public DiscountServiceModel editProductDiscount(DiscountServiceModel model) throws DiscountNotFoundException {
         Discount discount = this.discountRepository.findById(model.getId())
-                .orElseThrow(() -> new IllegalArgumentException(ExceptionMessageConstants.DISCOUNT_NOT_FOUND_EDIT));
+                .orElseThrow(() -> new DiscountNotFoundException(DISCOUNT_NOT_FOUND_EDIT));
 
         discount.setPrice(model.getPrice());
 
         this.discountRepository.saveAndFlush(discount);
+
+        return this.modelMapper.map(discount, DiscountServiceModel.class);
     }
 
     @Override
-    public void deleteDiscount(String id) {
+    public void deleteDiscount(String id) throws DiscountNotFoundException {
         Discount discount = this.discountRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException(ExceptionMessageConstants.DISCOUNT_NOT_FOUND_DELETE));
+                .orElseThrow(() -> new DiscountNotFoundException(DISCOUNT_NOT_FOUND_DELETE));
 
         this.discountRepository.delete(discount);
     }
 
     @Override
-    public DiscountServiceModel findDiscountById(String id) {
+    public DiscountServiceModel findDiscountById(String id) throws DiscountNotFoundException {
         Discount discount = this.discountRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException(ExceptionMessageConstants.DISCOUNT_NOT_FOUND));
+                .orElseThrow(() -> new DiscountNotFoundException(DISCOUNT_NOT_FOUND));
 
         return this.modelMapper.map(discount, DiscountServiceModel.class);
     }

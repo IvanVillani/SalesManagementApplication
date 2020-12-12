@@ -9,6 +9,7 @@ import com.ivan.salesapp.domain.models.service.UserServiceModel;
 import com.ivan.salesapp.domain.models.view.OfferViewModel;
 import com.ivan.salesapp.domain.models.view.RecordViewModel;
 import com.ivan.salesapp.domain.models.view.Sale;
+import com.ivan.salesapp.exceptions.RecordNotFoundException;
 import com.ivan.salesapp.repository.RecordRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +46,7 @@ public class RecordService implements IRecordService, ExceptionMessageConstants 
     }
 
     @Override
-    public List<RecordViewModel> retrieveRecordsByOrderId(String id) {
+    public List<RecordViewModel> retrieveRecordsByOrderId(String id) throws RecordNotFoundException {
         List<RecordViewModel> records = this.recordRepository.findAll()
                 .stream()
                 .filter(r -> id.equals(r.getOrder().getId()))
@@ -53,19 +54,22 @@ public class RecordService implements IRecordService, ExceptionMessageConstants 
                 .collect(toList());
 
         if (records.isEmpty()) {
-            throw new IllegalArgumentException(ExceptionMessageConstants.RECORD_BY_ORDER_ID_NOT_FOUND);
+            throw new RecordNotFoundException(RECORD_BY_ORDER_ID_NOT_FOUND);
         } else {
             return records;
         }
     }
 
     @Override
-    public RecordViewModel retrieveRecordByOrderId(String id) {
-        return null;
+    public List<RecordViewModel> retrieveAllRecords() {
+        return this.recordRepository.findAll()
+                .stream()
+                .map(r -> this.modelMapper.map(r, RecordViewModel.class))
+                .collect(toList());
     }
 
     @Override
-    public List<Sale> retrieveSalesByUserUsername(String username) {
+    public List<Sale> retrieveSalesByUserUsername(String username) throws RecordNotFoundException {
         UserServiceModel user = this.iUserService.findUserByUsername(username);
 
         List<RecordViewModel> records = new ArrayList<>();
@@ -81,7 +85,7 @@ public class RecordService implements IRecordService, ExceptionMessageConstants 
         return extractSalesFromRecords(records, user.getUsername());
     }
 
-    private List<Sale> extractSalesFromRecords(List<RecordViewModel> records, String username) {
+    private List<Sale> extractSalesFromRecords(List<RecordViewModel> records, String username) throws RecordNotFoundException {
         List<Sale> sales = new ArrayList<>();
 
         for (RecordViewModel record : records) {
@@ -93,7 +97,7 @@ public class RecordService implements IRecordService, ExceptionMessageConstants 
         return sales;
     }
 
-    private Sale createSaleFromRecord(RecordViewModel record, String username) {
+    private Sale createSaleFromRecord(RecordViewModel record, String username) throws RecordNotFoundException {
         Sale sale = new Sale();
 
         OfferViewModel offer = findOfferForMatchingCreator(record, username);
@@ -111,13 +115,13 @@ public class RecordService implements IRecordService, ExceptionMessageConstants 
         return sale;
     }
 
-    private OfferViewModel findOfferForMatchingCreator(RecordViewModel record, String username) {
+    private OfferViewModel findOfferForMatchingCreator(RecordViewModel record, String username) throws RecordNotFoundException {
 
         return record.getOffers()
                 .stream()
                 .filter(o -> username.equals(o.getDiscount().getCreator()))
                 .findFirst().orElseThrow(() ->
-                new IllegalArgumentException(String.format(ExceptionMessageConstants.OFFER_BY_USERNAME_NOT_FOUND, username)));
+                new RecordNotFoundException(String.format(OFFER_BY_USERNAME_NOT_FOUND, username)));
 
     }
 }

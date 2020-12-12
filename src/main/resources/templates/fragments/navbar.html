@@ -23,7 +23,7 @@
     </th:block>
     <th:block sec:authorize="isAuthenticated()">
         <nav class="navbar navbar-expand-lg navbar-light bg-light rounded font-weight-bold">
-            <a class="navbar-brand font-weight-bold" th:href="@{/home}">● Sales Management Portal</a>
+            <a class="navbar-brand font-weight-bold" th:href="@{/home}">● Home Design Store</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#userNav"
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -103,6 +103,9 @@
                     <th:block sec:authorize="hasRole('ROLE_ADMIN')">
                         <li class="nav-item active">
                             <a class="nav-link" th:href="@{/discounts/all}">All Discounts</a>
+                        </li>
+                        <li class="nav-item active">
+                            <a class="nav-link" th:href="@{/orders/all}">All Orders</a>
                         </li>
                         <li class="nav-item active">
                             <div class="dropdown">

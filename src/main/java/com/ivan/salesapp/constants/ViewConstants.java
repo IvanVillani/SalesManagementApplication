@@ -14,6 +14,7 @@ public interface ViewConstants {
     String DISCOUNT_DELETE = "discount/delete-discount";
     String DISCOUNT_EDIT = "discount/edit-discount";
     String DISCOUNT_MY = "discount/my-discounts";
+    String DISCOUNT_TWEET = "discount/discount-tweet";
 
     String ORDER_ALL = "order/all-orders";
     String ORDER_ALL_SALES = "order/all-sales";
@@ -35,4 +36,5 @@ public interface ViewConstants {
 
     String HOME = "home";
     String INDEX = "index";
+    String ERROR = "error";
 }

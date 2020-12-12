@@ -13,18 +13,26 @@
         <div class="col"></div>
         <div class="col-10">
             <div class="row">
-                <div class="col-5"><h1 class="text-left text-dark">Orders</h1></div>
+                <div class="col-5">
+                    <h1 class="text-left text-dark">
+                        Orders
+                        <th:block sec:authorize="hasRole('ROLE_ADMIN')">
+                            <a th:href="@{/statistics/get-statistics}" class="btn-link font-italic font-weight-light text-secondary">(Get Statistics)</a>
+                        </th:block>
+                    </h1>
+                </div>
                 <div class="col-5">
                     <form id="add-category-form" class="form w-75 mx-auto" th:action="@{/orders/search}" th:method="post">
                         <div class="row">
-                            <div class="col-9">
+                            <div class="col-10">
                                 <div class="rounded input-daterange input-group" id="datepicker">
-                                    <input type="text" class="input-sm form-control" name="start" required/>
-                                    <span class="input-group-addon">to</span>
-                                    <input type="text" class="input-sm form-control" name="end" required/>
+                                    <span class="input-group-addon p-2"><span class="font-weight-bold">Date: </span><span class="font-italic">from</span></span>
+                                    <input type="text" class="input-sm form-control h-25" name="start" required/>
+                                    <span class="input-group-addon p-2 font-italic">to</span>
+                                    <input type="text" class="input-sm form-control h-25" name="end" required/>
                                 </div>
                             </div>
-                            <div class="col">
+                            <div class="col-2">
                                 <div class="button-holder d-flex justify-content-center">
                                     <button type="submit" class="btn btn-secondary">Search</button>
                                 </div>

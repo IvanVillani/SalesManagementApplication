@@ -31,16 +31,22 @@
                     <label for="choose-product-resellers">Choose Reseller</label>
                     <select class="form-control text-dark text-uppercase font-italic font-weight-bold" id="choose-product-resellers" name="discountId">
                         <option selected="" th:value="${product.id}">**STOCK PRICE** $<span th:text="${product.price}"></span></option>
-
                     </select>
-                    <div class="text-dark">-</div>
-                    <label for="quantity" class="font-weight-bold">Quantity</label>
-                    <input id="quantity" class="form-control text-center" type="number" min="1" th:max="${product.stock - cartQuantity}"
-                           step="1"
-                           name="quantity" value="1"/>
-                    <input type="hidden" name="productId" th:value="${product.id}">
-                    <div class="text-dark">-</div>
-                    <button type="submit" class="btn btn-dark">Add to Cart</button>
+                    <th:block sec:authorize="hasRole('ROLE_CLIENT')">
+                        <div class="text-dark">-</div>
+                        <label for="quantity" class="font-weight-bold">Quantity</label>
+                        <input id="quantity" class="form-control text-center" type="number" min="1" th:max="${product.stock - cartQuantity}"
+                               step="1"
+                               name="quantity" value="1"/>
+                        <input type="hidden" name="productId" th:value="${product.id}">
+                        <div class="text-dark">-</div>
+                        <th:block th:if="${product.stock > 0}">
+                            <button type="submit" class="btn btn-dark">Add to Cart</button>
+                        </th:block>
+                        <th:block th:if="${product.stock == 0}">
+                            <p class="text-danger">Currently unavailable.</p>
+                        </th:block>
+                    </th:block>
                 </form>
             </div>
 

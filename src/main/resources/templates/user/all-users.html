@@ -33,12 +33,16 @@
                     <div class="row">
                         <th:block th:if="${#lists.contains(user.authorities, 'CLIENT') &&
                         !#lists.contains(user.authorities, 'ROOT')}">
-                            <form th:action="@{/users/set-reseller/{id}(id=${user.id})}" method="post">
-                                <input type="hidden" name="_csrf"
-                                       value="80417983-fe8b-45c7-963e-31f6915a1560">
-                                <button class="btn btn-secondary">RESELLER</button>
-                            </form>
-                            <form th:action="@{/users/delete-client{id}(id=${user.id})}" method="post">
+                            <th:block sec:authorize="hasRole('ROLE_ADMIN')">
+                                <form th:action="@{/users/set-reseller/{id}(id=${user.id})}" class="mr-1 ml-1"
+                                      method="post">
+                                    <input type="hidden" name="_csrf"
+                                           value="80417983-fe8b-45c7-963e-31f6915a1560">
+                                    <button class="btn btn-secondary">RESELLER</button>
+                                </form>
+                            </th:block>
+                            <form th:action="@{/users/delete-client{id}(id=${user.id})}" class="mr-1 ml-1"
+                                  method="post">
                                 <input type="hidden" name="_csrf"
                                        value="80417983-fe8b-45c7-963e-31f6915a1560">
                                 <button class="btn btn-danger">REMOVE</button>
@@ -46,39 +50,53 @@
                         </th:block>
                         <th:block th:if="${#lists.contains(user.authorities, 'RESELLER') &&
                         !#lists.contains(user.authorities, 'ROOT')}">
-                            <form th:action="@{/users/set-client/{id}(id=${user.id})}" method="post">
-                                <input type="hidden" name="_csrf"
-                                       value="80417983-fe8b-45c7-963e-31f6915a1560">
-                                <button class="btn btn-outline-secondary">CLIENT</button>
-                            </form>
-                            <form th:action="@{/users/set-admin/{id}(id=${user.id})}" method="post">
-                                <input type="hidden" name="_csrf"
-                                       value="80417983-fe8b-45c7-963e-31f6915a1560">
-                                <button class="btn btn-dark">ADMIN</button>
-                            </form>
-                            <form th:action="@{/users/delete-reseller{id}(id=${user.id})}" method="post">
-                                <input type="hidden" name="_csrf"
-                                       value="80417983-fe8b-45c7-963e-31f6915a1560">
-                                <button class="btn btn-danger">REMOVE</button>
-                            </form>
+                            <th:block sec:authorize="hasRole('ROLE_ADMIN')">
+                                <form th:action="@{/users/set-client/{id}(id=${user.id})}" class="mr-1 ml-1"
+                                      method="post">
+                                    <input type="hidden" name="_csrf"
+                                           value="80417983-fe8b-45c7-963e-31f6915a1560">
+                                    <button class="btn btn-outline-secondary">CLIENT</button>
+                                </form>
+                            </th:block>
+                            <th:block sec:authorize="hasRole('ROLE_ROOT')">
+                                <form th:action="@{/users/set-admin/{id}(id=${user.id})}" class="mr-1 ml-1"
+                                      method="post">
+                                    <input type="hidden" name="_csrf"
+                                           value="80417983-fe8b-45c7-963e-31f6915a1560">
+                                    <button class="btn btn-dark">ADMIN</button>
+                                </form>
+                            </th:block>
+                            <th:block sec:authorize="hasRole('ROLE_ADMIN')">
+                                <form th:action="@{/users/delete-reseller{id}(id=${user.id})}" class="mr-1 ml-1"
+                                      method="post">
+                                    <input type="hidden" name="_csrf"
+                                           value="80417983-fe8b-45c7-963e-31f6915a1560">
+                                    <button class="btn btn-danger">REMOVE</button>
+                                </form>
+                            </th:block>
                         </th:block>
                         <th:block th:if="${#lists.contains(user.authorities, 'ADMIN') &&
                         !#lists.contains(user.authorities, 'ROOT')}">
-                            <form th:action="@{/users/set-client/{id}(id=${user.id})}" method="post">
-                                <input type="hidden" name="_csrf"
-                                       value="80417983-fe8b-45c7-963e-31f6915a1560">
-                                <button class="btn btn-outline-secondary">CLIENT</button>
-                            </form>
-                            <form th:action="@{/users/set-reseller/{id}(id=${user.id})}" method="post">
-                                <input type="hidden" name="_csrf"
-                                       value="80417983-fe8b-45c7-963e-31f6915a1560">
-                                <button class="btn btn-secondary">RESELLER</button>
-                            </form>
-                            <form th:action="@{/users/delete-admin{id}(id=${user.id})}" method="post">
-                                <input type="hidden" name="_csrf"
-                                       value="80417983-fe8b-45c7-963e-31f6915a1560">
-                                <button class="btn btn-danger">REMOVE</button>
-                            </form>
+                            <th:block sec:authorize="hasRole('ROLE_ROOT')">
+                                <form th:action="@{/users/set-client/{id}(id=${user.id})}" class="mr-1 ml-1"
+                                      method="post">
+                                    <input type="hidden" name="_csrf"
+                                           value="80417983-fe8b-45c7-963e-31f6915a1560">
+                                    <button class="btn btn-outline-secondary">CLIENT</button>
+                                </form>
+                                <form th:action="@{/users/set-reseller/{id}(id=${user.id})}" class="mr-1 ml-1"
+                                      method="post">
+                                    <input type="hidden" name="_csrf"
+                                           value="80417983-fe8b-45c7-963e-31f6915a1560">
+                                    <button class="btn btn-secondary">RESELLER</button>
+                                </form>
+                                <form th:action="@{/users/delete-admin{id}(id=${user.id})}" class="mr-1 ml-1"
+                                      method="post">
+                                    <input type="hidden" name="_csrf"
+                                           value="80417983-fe8b-45c7-963e-31f6915a1560">
+                                    <button class="btn btn-danger">REMOVE</button>
+                                </form>
+                            </th:block>
                         </th:block>
                     </div>
                 </td>

@@ -1,10 +1,16 @@
 package com.ivan.salesapp.services;
 
+import com.ivan.salesapp.constants.ExceptionMessageConstants;
+import com.ivan.salesapp.constants.MailSenderConstants;
+import com.ivan.salesapp.constants.ViewConstants;
+import com.ivan.salesapp.domain.entities.Role;
 import com.ivan.salesapp.domain.entities.User;
 import com.ivan.salesapp.domain.models.service.RoleServiceModel;
 import com.ivan.salesapp.domain.models.service.UserServiceModel;
 import com.ivan.salesapp.domain.models.view.UserAllViewModel;
 import com.ivan.salesapp.enums.UserRole;
+import com.ivan.salesapp.exceptions.InvalidUserException;
+import com.ivan.salesapp.exceptions.UserNotFoundException;
 import com.ivan.salesapp.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,13 +22,14 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 @Service
-public class UserService implements IUserService {
+public class UserService implements IUserService, ExceptionMessageConstants, ViewConstants, MailSenderConstants {
     private final UserRepository userRepository;
     private final IDiscountService iDiscountService;
     private final IRoleService iRoleService;
@@ -46,35 +53,37 @@ public class UserService implements IUserService {
         } else {
             userServiceModel.setAuthorities(new LinkedHashSet<>());
 
-            userServiceModel.getAuthorities().add(this.iRoleService.findByAuthority("ROLE_CLIENT"));
+            userServiceModel.getAuthorities().add(this.iRoleService.findByAuthority(UserRole.CLIENT.toString()));
         }
 
         User user = this.modelMapper.map(userServiceModel, User.class);
         user.setPassword(this.bCryptPasswordEncoder.encode(userServiceModel.getPassword()));
 
-        return this.modelMapper.map(this.userRepository.saveAndFlush(user), UserServiceModel.class);
+        this.userRepository.saveAndFlush(user);
+
+        return this.modelMapper.map(user, UserServiceModel.class);
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return this.userRepository
                 .findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Username not found!"));
+                .orElseThrow(() -> new UsernameNotFoundException(USER_NOT_FOUND_BY_USERNAME));
     }
 
     @Override
     public UserServiceModel findUserByUsername(String username) {
         return this.userRepository.findByUsername(username).map(u -> this.modelMapper
                 .map(u, UserServiceModel.class))
-                .orElseThrow(() -> new UsernameNotFoundException("Invalid username! Not existent!"));
+                .orElseThrow(() -> new UsernameNotFoundException(USER_NOT_FOUND_BY_USERNAME));
     }
 
     @Override
-    public UserServiceModel editUserProfile(UserServiceModel userServiceModel, String oldPassword) {
+    public UserServiceModel editUserProfile(UserServiceModel userServiceModel, String oldPassword) throws InvalidUserException {
         User user = this.userRepository.findByUsername(userServiceModel.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("Username not found!"));
+                .orElseThrow(() -> new UsernameNotFoundException(USER_NOT_FOUND_BY_USERNAME));
         if (!this.bCryptPasswordEncoder.matches(oldPassword, user.getPassword())) {
-            throw new IllegalArgumentException("Incorrect password!");
+            throw new InvalidUserException(INCORRECT_PASSWORD, userServiceModel.getUsername(), USER_EDIT);
         }
 
         user.setPassword(!"".equals(userServiceModel.getPassword()) ?
@@ -83,12 +92,14 @@ public class UserService implements IUserService {
 
         user.setEmail(userServiceModel.getEmail());
 
-        return this.modelMapper.map(this.userRepository.saveAndFlush(user), UserServiceModel.class);
+        this.userRepository.saveAndFlush(user);
+
+        return this.modelMapper.map(user, UserServiceModel.class);
     }
 
     @Override
-    public void deleteUserById(String id) {
-        User user = this.userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("No such user!"));
+    public void deleteUserById(String id) throws UserNotFoundException {
+        User user = this.userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_BY_ID));
 
         iDiscountService.deleteDiscountsByUserId(user.getId());
 
@@ -96,8 +107,8 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public void deleteUserByUsername(String username) {
-        User user = this.userRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("No such user!"));
+    public void deleteUserByUsername(String username) throws UserNotFoundException {
+        User user = this.userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_BY_USERNAME));
 
         iDiscountService.deleteDiscountsByUserId(user.getId());
 
@@ -122,19 +133,23 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public void setUserRole(String id, String role) {
+    public UserServiceModel setUserRole(String id, String role) throws UserNotFoundException {
         User user = this.userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Incorrect id!"));
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_BY_ID));
 
         UserServiceModel userServiceModel = this.modelMapper.map(user, UserServiceModel.class);
 
-        userServiceModel.getAuthorities().clear();
-
         UserRole authority = UserRole.get(role);
+
+        checkIfNewAdminAndDeleteOld(authority);
+
+        userServiceModel.getAuthorities().clear();
 
         userServiceModel.getAuthorities().add(this.iRoleService.findByAuthority(authority.toString()));
 
         this.userRepository.saveAndFlush(this.modelMapper.map(userServiceModel, User.class));
+
+        return userServiceModel;
     }
 
     @Override
@@ -154,7 +169,7 @@ public class UserService implements IUserService {
 
     }
 
-    private static Function<UserServiceModel, UserAllViewModel> mapToViewModelSetCategories(ModelMapper modelMapper) {
+    private Function<UserServiceModel, UserAllViewModel> mapToViewModelSetCategories(ModelMapper modelMapper) {
         return u -> {
             UserAllViewModel user = modelMapper.map(u, UserAllViewModel.class);
             if (u.getAuthorities().size() > 1) {
@@ -169,5 +184,19 @@ public class UserService implements IUserService {
             }
             return user;
         };
+    }
+
+    private void checkIfNewAdminAndDeleteOld(UserRole newAuthority) throws UserNotFoundException {
+        if(newAuthority.toString().equals(UserRole.ADMIN.toString())){
+            List<User> users = this.userRepository.findAll();
+
+            for (User user : users) {
+                List<Role> roles = new ArrayList<>(user.getAuthorities());
+                if (roles.size() == 1 && UserRole.ADMIN.toString().equals(roles.get(0).getAuthority())){
+                    this.setUserRole(user.getId(), UserRole.RESELLER.getRole());
+                    break;
+                }
+            }
+        }
     }
 }

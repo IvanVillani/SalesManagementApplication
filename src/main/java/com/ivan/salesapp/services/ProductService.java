@@ -1,8 +1,11 @@
 package com.ivan.salesapp.services;
 
+import com.ivan.salesapp.constants.ExceptionMessageConstants;
 import com.ivan.salesapp.domain.entities.Category;
 import com.ivan.salesapp.domain.entities.Product;
+import com.ivan.salesapp.domain.models.service.CategoryServiceModel;
 import com.ivan.salesapp.domain.models.service.ProductServiceModel;
+import com.ivan.salesapp.exceptions.ProductNotFoundException;
 import com.ivan.salesapp.repository.ProductRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +20,7 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.toList;
 
 @Service
-public class ProductService implements IProductService {
+public class ProductService implements IProductService, ExceptionMessageConstants {
     private final ProductRepository productRepository;
     private final ICategoryService iCategoryService;
     private final ModelMapper modelMapper;
@@ -44,17 +47,17 @@ public class ProductService implements IProductService {
     }
 
     @Override
-    public ProductServiceModel findProductById(String id) {
+    public ProductServiceModel findProductById(String id) throws ProductNotFoundException {
         Product product = this.productRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Incorrect product id!"));
+                .orElseThrow(() -> new ProductNotFoundException(PRODUCT_NOT_FOUND_ID));
 
         return this.modelMapper.map(product, ProductServiceModel.class);
     }
 
     @Override
-    public void editProduct(String id, ProductServiceModel productServiceModel, List<String> categories) {
+    public ProductServiceModel editProduct(String id, ProductServiceModel productServiceModel, List<String> categories) throws ProductNotFoundException {
         Product product = this.productRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Incorrect id!"));
+                .orElseThrow(() -> new ProductNotFoundException(PRODUCT_NOT_FOUND_ID));
 
         product.setName(productServiceModel.getName());
         product.setDescription(productServiceModel.getDescription());
@@ -71,12 +74,14 @@ public class ProductService implements IProductService {
 
 
         this.productRepository.saveAndFlush(product);
+
+        return this.modelMapper.map(product, ProductServiceModel.class);
     }
 
     @Override
-    public void deleteProduct(String id) {
+    public void deleteProduct(String id) throws ProductNotFoundException {
         Product product = this.productRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Incorrect id!"));
+                .orElseThrow(() -> new ProductNotFoundException(PRODUCT_NOT_FOUND_ID));
 
         this.productRepository.delete(product);
     }
