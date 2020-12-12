@@ -20,7 +20,7 @@ public interface IDiscountService {
 
     DiscountServiceModel discountProduct(String productId, DiscountAddBindingModel discountAddBindingModel, UserServiceModel userServiceModel);
 
-    void editProductDiscount(DiscountServiceModel discountServiceModel) throws DiscountNotFoundException;
+    DiscountServiceModel editProductDiscount(DiscountServiceModel discountServiceModel) throws DiscountNotFoundException;
 
     void deleteDiscount(String id) throws DiscountNotFoundException;
 

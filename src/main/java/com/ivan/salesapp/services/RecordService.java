@@ -61,8 +61,11 @@ public class RecordService implements IRecordService, ExceptionMessageConstants 
     }
 
     @Override
-    public RecordViewModel retrieveRecordByOrderId(String id) {
-        return null;
+    public List<RecordViewModel> retrieveAllRecords() {
+        return this.recordRepository.findAll()
+                .stream()
+                .map(r -> this.modelMapper.map(r, RecordViewModel.class))
+                .collect(toList());
     }
 
     @Override

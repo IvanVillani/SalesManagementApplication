@@ -3,6 +3,7 @@ package com.ivan.salesapp.services;
 import com.ivan.salesapp.constants.ExceptionMessageConstants;
 import com.ivan.salesapp.domain.entities.Category;
 import com.ivan.salesapp.domain.entities.Product;
+import com.ivan.salesapp.domain.models.service.CategoryServiceModel;
 import com.ivan.salesapp.domain.models.service.ProductServiceModel;
 import com.ivan.salesapp.exceptions.ProductNotFoundException;
 import com.ivan.salesapp.repository.ProductRepository;
@@ -54,7 +55,7 @@ public class ProductService implements IProductService, ExceptionMessageConstant
     }
 
     @Override
-    public void editProduct(String id, ProductServiceModel productServiceModel, List<String> categories) throws ProductNotFoundException {
+    public ProductServiceModel editProduct(String id, ProductServiceModel productServiceModel, List<String> categories) throws ProductNotFoundException {
         Product product = this.productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(PRODUCT_NOT_FOUND_ID));
 
@@ -73,6 +74,8 @@ public class ProductService implements IProductService, ExceptionMessageConstant
 
 
         this.productRepository.saveAndFlush(product);
+
+        return this.modelMapper.map(product, ProductServiceModel.class);
     }
 
     @Override

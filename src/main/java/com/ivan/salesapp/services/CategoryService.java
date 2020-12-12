@@ -56,14 +56,15 @@ public class CategoryService implements ICategoryService, ExceptionMessageConsta
     }
 
     @Override
-    public void editCategory(String id, CategoryServiceModel categoryServiceModel) throws CategoryNotFoundException {
+    public CategoryServiceModel editCategory(String id, CategoryServiceModel categoryServiceModel) throws CategoryNotFoundException {
         Category category = this.categoryRepository.findById(id)
                 .orElseThrow(() -> new CategoryNotFoundException(CATEGORY_NOT_FOUND));
 
         category.setName(categoryServiceModel.getName());
 
-
         this.categoryRepository.saveAndFlush(category);
+
+        return this.modelMapper.map(category, CategoryServiceModel.class);
     }
 
     @Override
@@ -74,7 +75,7 @@ public class CategoryService implements ICategoryService, ExceptionMessageConsta
         int allProductsByCategory = iProductService.findAllByCategory(category.getName()).size();
 
         if (allProductsByCategory != 0){
-            throw new CategoryNotFoundException(CATEGORY_IS_EMPTY);
+            throw new CategoryNotFoundException(CATEGORY_IS_NOT_EMPTY);
         }
 
         this.categoryRepository.delete(category);

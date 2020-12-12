@@ -1,7 +1,9 @@
 package com.ivan.salesapp.services;
 
 import com.ivan.salesapp.constants.ExceptionMessageConstants;
+import com.ivan.salesapp.constants.MailSenderConstants;
 import com.ivan.salesapp.constants.ViewConstants;
+import com.ivan.salesapp.domain.entities.Role;
 import com.ivan.salesapp.domain.entities.User;
 import com.ivan.salesapp.domain.models.service.RoleServiceModel;
 import com.ivan.salesapp.domain.models.service.UserServiceModel;
@@ -20,13 +22,14 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 @Service
-public class UserService implements IUserService, ExceptionMessageConstants, ViewConstants {
+public class UserService implements IUserService, ExceptionMessageConstants, ViewConstants, MailSenderConstants {
     private final UserRepository userRepository;
     private final IDiscountService iDiscountService;
     private final IRoleService iRoleService;
@@ -56,7 +59,9 @@ public class UserService implements IUserService, ExceptionMessageConstants, Vie
         User user = this.modelMapper.map(userServiceModel, User.class);
         user.setPassword(this.bCryptPasswordEncoder.encode(userServiceModel.getPassword()));
 
-        return this.modelMapper.map(this.userRepository.saveAndFlush(user), UserServiceModel.class);
+        this.userRepository.saveAndFlush(user);
+
+        return this.modelMapper.map(user, UserServiceModel.class);
     }
 
     @Override
@@ -87,7 +92,9 @@ public class UserService implements IUserService, ExceptionMessageConstants, Vie
 
         user.setEmail(userServiceModel.getEmail());
 
-        return this.modelMapper.map(this.userRepository.saveAndFlush(user), UserServiceModel.class);
+        this.userRepository.saveAndFlush(user);
+
+        return this.modelMapper.map(user, UserServiceModel.class);
     }
 
     @Override
@@ -126,19 +133,23 @@ public class UserService implements IUserService, ExceptionMessageConstants, Vie
     }
 
     @Override
-    public void setUserRole(String id, String role) throws UserNotFoundException {
+    public UserServiceModel setUserRole(String id, String role) throws UserNotFoundException {
         User user = this.userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_BY_ID));
 
         UserServiceModel userServiceModel = this.modelMapper.map(user, UserServiceModel.class);
 
-        userServiceModel.getAuthorities().clear();
-
         UserRole authority = UserRole.get(role);
+
+        checkIfNewAdminAndDeleteOld(authority);
+
+        userServiceModel.getAuthorities().clear();
 
         userServiceModel.getAuthorities().add(this.iRoleService.findByAuthority(authority.toString()));
 
         this.userRepository.saveAndFlush(this.modelMapper.map(userServiceModel, User.class));
+
+        return userServiceModel;
     }
 
     @Override
@@ -158,7 +169,7 @@ public class UserService implements IUserService, ExceptionMessageConstants, Vie
 
     }
 
-    private static Function<UserServiceModel, UserAllViewModel> mapToViewModelSetCategories(ModelMapper modelMapper) {
+    private Function<UserServiceModel, UserAllViewModel> mapToViewModelSetCategories(ModelMapper modelMapper) {
         return u -> {
             UserAllViewModel user = modelMapper.map(u, UserAllViewModel.class);
             if (u.getAuthorities().size() > 1) {
@@ -173,5 +184,19 @@ public class UserService implements IUserService, ExceptionMessageConstants, Vie
             }
             return user;
         };
+    }
+
+    private void checkIfNewAdminAndDeleteOld(UserRole newAuthority) throws UserNotFoundException {
+        if(newAuthority.toString().equals(UserRole.ADMIN.toString())){
+            List<User> users = this.userRepository.findAll();
+
+            for (User user : users) {
+                List<Role> roles = new ArrayList<>(user.getAuthorities());
+                if (roles.size() == 1 && UserRole.ADMIN.toString().equals(roles.get(0).getAuthority())){
+                    this.setUserRole(user.getId(), UserRole.RESELLER.getRole());
+                    break;
+                }
+            }
+        }
     }
 }

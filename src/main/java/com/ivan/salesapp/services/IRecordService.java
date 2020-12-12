@@ -10,7 +10,7 @@ import java.util.List;
 public interface IRecordService {
     void createRecord(RecordServiceModel recordServiceModel);
 
-    RecordViewModel retrieveRecordByOrderId(String id);
+    List<RecordViewModel> retrieveAllRecords();
 
     List<RecordViewModel> retrieveRecordsByOrderId(String id) throws RecordNotFoundException;
 

@@ -11,7 +11,7 @@ public interface ExceptionMessageConstants {
     String EMAIL_ALREADY_EXISTS = "There is already a user with this email!";
 
     String CATEGORY_NOT_FOUND = "There is no category with this name or id!";
-    String CATEGORY_IS_EMPTY = "There are no products in this category!";
+    String CATEGORY_IS_NOT_EMPTY = "There are still products in this category!";
     String CATEGORY_ALREADY_EXISTS = "There is already a category with this name!";
 
     String DISCOUNT_NOT_FOUND = "Discount with the wanted ID not found!";

@@ -14,7 +14,7 @@ public interface ICategoryService {
 
     CategoryServiceModel findCategoryByName(String name) throws CategoryNotFoundException;
 
-    void editCategory(String id, CategoryServiceModel categoryServiceModel) throws CategoryNotFoundException;
+    CategoryServiceModel editCategory(String id, CategoryServiceModel categoryServiceModel) throws CategoryNotFoundException;
 
     void deleteCategory(String id, IProductService iProductService) throws CategoryNotFoundException;
 }

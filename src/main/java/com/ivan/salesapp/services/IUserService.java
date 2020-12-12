@@ -23,7 +23,7 @@ public interface IUserService extends UserDetailsService {
 
     void deleteUserByUsername(String username) throws UserNotFoundException;
 
-    void setUserRole(String id, String role) throws UserNotFoundException;
+    UserServiceModel setUserRole(String id, String role) throws UserNotFoundException;
 
     List<UserAllViewModel> getUsersBasedOnAuthority(String authority);
 

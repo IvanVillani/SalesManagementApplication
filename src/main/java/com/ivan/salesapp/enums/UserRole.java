@@ -6,7 +6,7 @@ import java.util.Map;
 public enum UserRole {
     CLIENT("client"), RESELLER("reseller"), ADMIN("admin"), ROOT("root");
 
-    private String value;
+    private final String value;
 
     UserRole(String value) {
         this.value = value;

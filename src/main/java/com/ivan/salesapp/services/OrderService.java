@@ -7,21 +7,23 @@ import com.ivan.salesapp.domain.entities.Order;
 import com.ivan.salesapp.domain.entities.Product;
 import com.ivan.salesapp.domain.models.service.OrderServiceModel;
 import com.ivan.salesapp.domain.models.service.RecordServiceModel;
+import com.ivan.salesapp.domain.models.service.RoleServiceModel;
+import com.ivan.salesapp.domain.models.service.UserServiceModel;
+import com.ivan.salesapp.enums.UserRole;
 import com.ivan.salesapp.exceptions.OrderNotFoundException;
 import com.ivan.salesapp.exceptions.ProductNotFoundException;
 import com.ivan.salesapp.repository.OrderRepository;
 import com.ivan.salesapp.repository.ProductRepository;
-import org.modelmapper.MappingException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import javax.mail.MessagingException;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -32,6 +34,7 @@ public class OrderService implements IOrderService, MailSenderConstants, Excepti
 
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
+    private final IUserService iUserService;
     private final IRecordService iRecordService;
     private final IEmailService iEmailService;
     private final ModelMapper modelMapper;
@@ -40,17 +43,16 @@ public class OrderService implements IOrderService, MailSenderConstants, Excepti
     public OrderService(
             OrderRepository orderRepository,
             ProductRepository productRepository,
-            IRecordService iRecordService, IEmailService iEmailService, ModelMapper modelMapper
+            IUserService iUserService, IRecordService iRecordService, IEmailService iEmailService, ModelMapper modelMapper
     ) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
+        this.iUserService = iUserService;
         this.iRecordService = iRecordService;
         this.iEmailService = iEmailService;
         this.modelMapper = modelMapper;
     }
 
-
-    @Async
     @Override
     @Transactional
     public void createOrder(OrderServiceModel orderServiceModel, List<RecordServiceModel> models) {
@@ -114,7 +116,6 @@ public class OrderService implements IOrderService, MailSenderConstants, Excepti
                         new OrderNotFoundException(String.format(ORDER_NOT_FOUND, id)));
     }
 
-    @Async
     @Override
     public void updateProductsStock(List<RecordServiceModel> records) throws ProductNotFoundException {
         for (RecordServiceModel record : records) {
@@ -122,6 +123,7 @@ public class OrderService implements IOrderService, MailSenderConstants, Excepti
                     .orElseThrow(() -> new ProductNotFoundException(PRODUCT_TO_UPDATE_NOT_FOUND));
 
             product.setStock(product.getStock() - record.getFullQuantity());
+            this.productRepository.saveAndFlush(product);
         }
     }
 
@@ -135,7 +137,10 @@ public class OrderService implements IOrderService, MailSenderConstants, Excepti
             if (product.getStock() <= 10){
                 String subject = String.format(MailSenderConstants.MESSAGE_SUBJECT, product.getName());
                 String text = String.format(MailSenderConstants.MESSAGE_TEXT, product.getName(), product.getId(), record.getFullQuantity(), product.getStock());
-                this.iEmailService.sendSimpleMessage("navisdays@gmail.com", subject, text);
+
+                String receiver = getAdminEmailAddress();
+
+                this.iEmailService.sendSimpleMessage(receiver, subject, text);
             }
         }
     }
@@ -146,5 +151,20 @@ public class OrderService implements IOrderService, MailSenderConstants, Excepti
                 .map(o -> this.modelMapper.map(o, OrderServiceModel.class))
                 .filter(o -> o.getRegisterDate().isEqual(orderServiceModel.getRegisterDate()))
                 .collect(toList());
+    }
+
+    private String getAdminEmailAddress(){
+        List<UserServiceModel> users = this.iUserService.findAllUsers();
+
+        for (UserServiceModel user : users) {
+            if(user.getAuthorities().size() == 1){
+                String authority = new ArrayList<>(user.getAuthorities()).get(0).getAuthority();
+                if(authority.equals(UserRole.ADMIN.toString())){
+                    return user.getEmail();
+                }
+            }
+        }
+
+        return MailSenderConstants.USERNAME;
     }
 }

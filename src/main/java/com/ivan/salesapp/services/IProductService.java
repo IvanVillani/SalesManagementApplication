@@ -13,7 +13,7 @@ public interface IProductService {
 
     ProductServiceModel findProductById(String id) throws ProductNotFoundException;
 
-    void editProduct(String id, ProductServiceModel productServiceModel, List<String> categories) throws ProductNotFoundException;
+    ProductServiceModel editProduct(String id, ProductServiceModel productServiceModel, List<String> categories) throws ProductNotFoundException;
 
     void deleteProduct(String id) throws ProductNotFoundException;
 

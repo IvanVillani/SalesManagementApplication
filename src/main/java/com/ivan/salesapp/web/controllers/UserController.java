@@ -128,7 +128,7 @@ public class UserController extends BaseController implements RoleConstants, Vie
     }
 
     @GetMapping("/all/clients")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(ROLE_RESELLER_OR_ADMIN)
     public ModelAndView allClients(ModelAndView modelAndView) {
         List<UserAllViewModel> usersList = iUserService
                 .getUsersBasedOnAuthority(UserRole.CLIENT.toString());
@@ -141,7 +141,7 @@ public class UserController extends BaseController implements RoleConstants, Vie
     }
 
     @GetMapping("/all/resellers")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize(ROLE_ADMIN)
     public ModelAndView allResellers(ModelAndView modelAndView) {
         List<UserAllViewModel> usersList = iUserService
                 .getUsersBasedOnAuthority(UserRole.RESELLER.toString());
@@ -167,7 +167,7 @@ public class UserController extends BaseController implements RoleConstants, Vie
     }
 
     @PostMapping("/set-client/{id}")
-    @PreAuthorize(ROLE_RESELLER_OR_ADMIN)
+    @PreAuthorize(ROLE_ADMIN)
     public ModelAndView setUser(@PathVariable String id) throws UserNotFoundException {
         this.iUserService.setUserRole(id, UserRole.CLIENT.getRole());
 
@@ -183,10 +183,10 @@ public class UserController extends BaseController implements RoleConstants, Vie
     }
 
     @PostMapping("/set-admin/{id}")
-    @PreAuthorize(ROLE_ADMIN)
+    @PreAuthorize(ROLE_ROOT)
     public ModelAndView setAdmin(@PathVariable String id) throws UserNotFoundException {
         this.iUserService.setUserRole(id, UserRole.ADMIN.getRole());
 
-        return super.redirect("/users/all/resellers");
+        return super.redirect("/users/all");
     }
 }

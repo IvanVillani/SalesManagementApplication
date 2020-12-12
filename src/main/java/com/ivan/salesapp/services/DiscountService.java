@@ -86,13 +86,15 @@ public class DiscountService implements IDiscountService, ExceptionMessageConsta
     }
 
     @Override
-    public void editProductDiscount(DiscountServiceModel model) throws DiscountNotFoundException {
+    public DiscountServiceModel editProductDiscount(DiscountServiceModel model) throws DiscountNotFoundException {
         Discount discount = this.discountRepository.findById(model.getId())
                 .orElseThrow(() -> new DiscountNotFoundException(DISCOUNT_NOT_FOUND_EDIT));
 
         discount.setPrice(model.getPrice());
 
         this.discountRepository.saveAndFlush(discount);
+
+        return this.modelMapper.map(discount, DiscountServiceModel.class);
     }
 
     @Override
