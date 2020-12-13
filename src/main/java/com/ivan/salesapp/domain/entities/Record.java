@@ -9,8 +9,7 @@ import java.util.List;
 public class Record extends BaseEntity {
 
     private Order order;
-    private Product product;
-    private List<Offer> offers;
+    private OrderProduct product;
     private BigDecimal price;
     private Integer discountQuantity;
     private Integer stockQuantity;
@@ -28,26 +27,13 @@ public class Record extends BaseEntity {
         this.order = order;
     }
 
-    @OneToOne(targetEntity = Product.class)
-    public Product getProduct() {
+    @OneToOne(targetEntity = OrderProduct.class)
+    public OrderProduct getProduct() {
         return product;
     }
 
-    public void setProduct(Product product) {
+    public void setProduct(OrderProduct product) {
         this.product = product;
-    }
-
-    @OneToMany(targetEntity = Offer.class, cascade=CascadeType.ALL)
-    @JoinColumn(
-            name = "offer_id",
-            referencedColumnName = "id"
-    )
-    public List<Offer> getOffers() {
-        return offers;
-    }
-
-    public void setOffers(List<Offer> offers) {
-        this.offers = offers;
     }
 
     @Column(name = "price")

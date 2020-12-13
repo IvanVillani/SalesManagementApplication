@@ -9,44 +9,19 @@ import java.util.List;
 @Entity
 @Table(name = "orders")
 public class Order extends BaseEntity{
-    private List<OrderProduct> products;
-    private User customer;
+    private String customer;
     private BigDecimal totalPrice;
     private LocalDateTime registerDate;
 
     public Order() {
     }
 
-    @ManyToMany(targetEntity = OrderProduct.class, cascade = CascadeType.ALL)
-    @JoinTable(
-            name = "orders_products",
-            joinColumns = @JoinColumn(
-                    name = "order_id",
-                    referencedColumnName = "id"
-            ),
-            inverseJoinColumns = @JoinColumn(
-                    name = "product_id",
-                    referencedColumnName = "id"
-            )
-    )
-    public List<OrderProduct> getProducts() {
-        return products;
-    }
-
-    public void setProducts(List<OrderProduct> products) {
-        this.products = products;
-    }
-
-    @ManyToOne(targetEntity = User.class)
-    @JoinColumn(
-            name = "customer_id",
-            referencedColumnName = "id"
-    )
-    public User getCustomer() {
+    @Column(name = "customer")
+    public String getCustomer() {
         return customer;
     }
 
-    public void setCustomer(User customer) {
+    public void setCustomer(String customer) {
         this.customer = customer;
     }
 

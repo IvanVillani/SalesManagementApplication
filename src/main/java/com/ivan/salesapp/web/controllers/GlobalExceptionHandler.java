@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.Arrays;
+
 import static java.util.stream.Collectors.toList;
 
 @ControllerAdvice
@@ -79,6 +81,7 @@ public class GlobalExceptionHandler extends BaseController implements ViewConsta
 
     @ExceptionHandler(Throwable.class)
     public ModelAndView handleOthers(Throwable ex){
+        //System.out.println(Arrays.toString(ex.getStackTrace()));
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject("error", ex.getMessage());
 

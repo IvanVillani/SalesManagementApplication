@@ -3,7 +3,6 @@ package com.ivan.salesapp.web.controllers;
 import com.ivan.salesapp.constants.ExceptionMessageConstants;
 import com.ivan.salesapp.constants.RoleConstants;
 import com.ivan.salesapp.constants.ViewConstants;
-import com.ivan.salesapp.domain.entities.Order;
 import com.ivan.salesapp.domain.models.service.*;
 import com.ivan.salesapp.domain.models.view.DiscountProductViewModel;
 import com.ivan.salesapp.domain.models.view.DiscountViewModel;
@@ -11,6 +10,8 @@ import com.ivan.salesapp.domain.models.view.ProductDetailsViewModel;
 import com.ivan.salesapp.domain.models.view.ShoppingCartItem;
 import com.ivan.salesapp.exceptions.DiscountNotFoundException;
 import com.ivan.salesapp.exceptions.ProductNotFoundException;
+import com.ivan.salesapp.repository.OfferRepository;
+import com.ivan.salesapp.repository.OrderProductRepository;
 import com.ivan.salesapp.services.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,6 @@ import java.security.Principal;
 import java.util.*;
 
 import static com.ivan.salesapp.constants.RoleConstants.ROLE_CLIENT;
-import static java.util.stream.Collectors.toList;
 
 @Controller
 @RequestMapping("/cart")
@@ -38,14 +38,18 @@ public class CartController extends BaseController implements RoleConstants, Vie
     private final IProductService iProductService;
     private final IUserService iUserService;
     private final IOrderService iOrderService;
+    private final OrderProductRepository orderProductRepository;
+    private final OfferRepository offerRepository;
     private final ModelMapper modelMapper;
 
     @Autowired
-    public CartController(IDiscountService iDiscountService, IProductService iProductService, IUserService iUserService, IOrderService iOrderService, ModelMapper modelMapper) {
+    public CartController(IDiscountService iDiscountService, IProductService iProductService, IUserService iUserService, IOrderService iOrderService, OrderProductRepository orderProductRepository, OfferRepository offerRepository, ModelMapper modelMapper) {
         this.iDiscountService = iDiscountService;
         this.iProductService = iProductService;
         this.iUserService = iUserService;
         this.iOrderService = iOrderService;
+        this.orderProductRepository = orderProductRepository;
+        this.offerRepository = offerRepository;
         this.modelMapper = modelMapper;
     }
 
@@ -255,19 +259,8 @@ public class CartController extends BaseController implements RoleConstants, Vie
     private OrderServiceModel prepareOrder(List<ShoppingCartItem> cartItems, String customer) {
         OrderServiceModel orderServiceModel = new OrderServiceModel();
 
-        orderServiceModel.setCustomer(this.iUserService.findUserByUsername(customer));
+        orderServiceModel.setCustomer(this.iUserService.findUserByUsername(customer).getUsername());
 
-        List<OrderProductServiceModel> products = new ArrayList<>();
-
-        for (ShoppingCartItem item : cartItems) {
-            OrderProductServiceModel productServiceModel = this.modelMapper.map(item.getProduct(), OrderProductServiceModel.class);
-
-            for (int i = 0; i < item.getQuantity(); i++) {
-                products.add(productServiceModel);
-            }
-        }
-
-        orderServiceModel.setProducts(products);
         orderServiceModel.setTotalPrice(this.calcTotal(cartItems));
 
         return orderServiceModel;
@@ -286,25 +279,28 @@ public class CartController extends BaseController implements RoleConstants, Vie
     }
 
     private RecordServiceModel createRecordFromShoppingCartItem(ShoppingCartItem shoppingCartItem){
-        RecordServiceModel model = this.modelMapper.map(shoppingCartItem, RecordServiceModel.class);
+        RecordServiceModel model = new RecordServiceModel();
 
         model.setFullQuantity(shoppingCartItem.getQuantity());
         model.setStockQuantity(shoppingCartItem.getStockQuantity());
         model.setDiscountQuantity(shoppingCartItem.getQuantity() - shoppingCartItem.getStockQuantity());
-
-        List<DiscountViewModel> srcDiscounts = shoppingCartItem.getProduct().getDiscounts();
-        model.setOffers(getOffersFromDiscounts(srcDiscounts));
+        model.setProduct(this.modelMapper.map(shoppingCartItem.getProduct().getProduct(), OrderProductServiceModel.class));
+        model.getProduct().setOrderPrice(shoppingCartItem.getProduct().getPrice());
+        model.getProduct().setOffers(getOffersFromDiscounts(shoppingCartItem));
 
         return model;
     }
 
-    private List<OfferServiceModel> getOffersFromDiscounts(List<DiscountViewModel> srcDiscounts){
+    private List<OfferServiceModel> getOffersFromDiscounts(ShoppingCartItem shoppingCartItem){
         List<OfferServiceModel> offers = new ArrayList<>();
 
-        for (DiscountViewModel srcDiscount : srcDiscounts) {
-            OfferServiceModel offer = new OfferServiceModel();
-            offer.setDiscount(this.modelMapper.map(srcDiscount, DiscountServiceModel.class));
-            offer.setQuantity(srcDiscount.getQuantity());
+        List<DiscountViewModel> srcDiscounts = shoppingCartItem.getProduct().getDiscounts();
+        for (DiscountViewModel discount : srcDiscounts) {
+            OfferServiceModel offer = this.modelMapper.map(shoppingCartItem.getProduct().getProduct(), OfferServiceModel.class);
+            offer.setDiscountPrice(discount.getPrice());
+            offer.setQuantity(discount.getQuantity());
+            offer.setCreator(discount.getCreator());
+
             offers.add(offer);
         }
         return offers;

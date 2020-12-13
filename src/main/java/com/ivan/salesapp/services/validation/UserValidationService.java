@@ -1,6 +1,7 @@
 package com.ivan.salesapp.services.validation;
 
 import com.ivan.salesapp.constants.ExceptionMessageConstants;
+import com.ivan.salesapp.domain.entities.User;
 import com.ivan.salesapp.domain.models.binding.UserEditBindingModel;
 import com.ivan.salesapp.domain.models.binding.UserRegisterBindingModel;
 import com.ivan.salesapp.exceptions.InvalidUserException;
@@ -49,8 +50,12 @@ public class UserValidationService implements IUserValidationService, ExceptionM
                 throw new InvalidUserException(PASSWORDS_NOT_MATCHING, user.getUsername(), sourceView);
             }
 
-            this.userRepository.findByEmail(user.getEmail())
+            User repoUser = this.userRepository.findByEmail(user.getEmail())
                     .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_BY_EMAIL));
+
+            if(user.getUsername().equals(repoUser.getUsername())){
+                throw new UserNotFoundException(USER_NOT_FOUND_BY_EMAIL);
+            }
 
             throw new InvalidUserException(EMAIL_ALREADY_EXISTS, user.getUsername(), sourceView);
         } catch (UserNotFoundException emailNotFoundException) {

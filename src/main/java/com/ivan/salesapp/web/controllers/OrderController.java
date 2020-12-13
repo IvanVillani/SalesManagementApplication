@@ -2,6 +2,7 @@ package com.ivan.salesapp.web.controllers;
 
 import com.ivan.salesapp.constants.RoleConstants;
 import com.ivan.salesapp.constants.ViewConstants;
+import com.ivan.salesapp.domain.models.service.OrderServiceModel;
 import com.ivan.salesapp.domain.models.service.RecordServiceModel;
 import com.ivan.salesapp.domain.models.view.OrderViewModel;
 import com.ivan.salesapp.domain.models.view.RecordViewModel;
@@ -60,8 +61,8 @@ public class OrderController extends BaseController implements RoleConstants, Vi
     @GetMapping("/my")
     @PreAuthorize("isAuthenticated()")
     public ModelAndView getMyOrders(ModelAndView modelAndView, Principal principal) {
-        List<OrderViewModel> orderViewModels = iOrderService.findOrdersByCustomer(principal.getName())
-                .stream()
+        List<OrderServiceModel> orderServiceModels = iOrderService.findOrdersByCustomer(principal.getName());
+        List<OrderViewModel> orderViewModels = orderServiceModels.stream()
                 .map(o -> modelMapper.map(o, OrderViewModel.class))
                 .collect(toList());
 

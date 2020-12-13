@@ -5,8 +5,7 @@ import java.util.List;
 
 public class RecordServiceModel extends BaseServiceModel{
     private OrderServiceModel order;
-    private ProductServiceModel product;
-    private List<OfferServiceModel> offers;
+    private OrderProductServiceModel product;
     private BigDecimal price;
     private Integer discountQuantity;
     private Integer stockQuantity;
@@ -23,20 +22,12 @@ public class RecordServiceModel extends BaseServiceModel{
         this.order = order;
     }
 
-    public ProductServiceModel getProduct() {
+    public OrderProductServiceModel getProduct() {
         return product;
     }
 
-    public void setProduct(ProductServiceModel product) {
+    public void setProduct(OrderProductServiceModel product) {
         this.product = product;
-    }
-
-    public List<OfferServiceModel> getOffers() {
-        return offers;
-    }
-
-    public void setOffers(List<OfferServiceModel> offers) {
-        this.offers = offers;
     }
 
     public BigDecimal getPrice() {
