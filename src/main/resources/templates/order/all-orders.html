@@ -58,7 +58,7 @@
         <th:block th:each="order, iter : ${orders}" th:object="${order}">
             <tr class="row mx-auto">
                 <th class="col-md-1 text-center" th:text="${iter.index + 1}"></th>
-                <td class="col-md-3 text-center" th:text="*{customer.username}"></td>
+                <td class="col-md-3 text-center" th:text="*{customer}"></td>
                 <td class="col-md-3 text-center" th:text="*{#temporals.format(registerDate, 'dd-MM-yyyy HH:mm') }"></td>
                 <td class="col-md-2 text-center" th:text="*{totalPrice}"></td>
                 <td class="col-md-2 text-center mx-auto">

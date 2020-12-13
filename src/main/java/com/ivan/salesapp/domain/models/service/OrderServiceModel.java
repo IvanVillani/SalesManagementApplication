@@ -6,27 +6,18 @@ import java.util.List;
 
 public class OrderServiceModel extends BaseServiceModel {
 
-    private List<OrderProductServiceModel> products;
-    private UserServiceModel customer;
+    private String customer;
     private BigDecimal totalPrice;
     private LocalDateTime registerDate;
 
     public OrderServiceModel() {
     }
 
-    public List<OrderProductServiceModel> getProducts() {
-        return products;
-    }
-
-    public void setProducts(List<OrderProductServiceModel> products) {
-        this.products = products;
-    }
-
-    public UserServiceModel getCustomer() {
+    public String getCustomer() {
         return customer;
     }
 
-    public void setCustomer(UserServiceModel customer) {
+    public void setCustomer(String customer) {
         this.customer = customer;
     }
 

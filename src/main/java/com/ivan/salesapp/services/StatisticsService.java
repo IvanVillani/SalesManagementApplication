@@ -11,11 +11,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.TextStyle;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 public class StatisticsService implements IStatisticsService{
@@ -33,11 +32,7 @@ public class StatisticsService implements IStatisticsService{
     public Map<String, Double> getStatisticsGraphDataByProductsSold() {
         Map<String, Double> data = new LinkedHashMap<>();
 
-        List<OfferViewModel> offers =  this.iRecordService.retrieveAllRecords()
-                .stream()
-                .map(RecordViewModel::getOffers)
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
+        List<OfferViewModel> offers =  getAllOffers();
 
          int soldQuantity = 0;
 
@@ -46,7 +41,7 @@ public class StatisticsService implements IStatisticsService{
         }
 
         for (OfferViewModel offer : offers) {
-            String creator = offer.getDiscount().getCreator();
+            String creator = offer.getCreator();
             if(data.containsKey(creator)){
                 Double percent = data.get(creator) + (offer.getQuantity() * 100 / soldQuantity);
                 data.put(creator, percent);
@@ -63,27 +58,23 @@ public class StatisticsService implements IStatisticsService{
     public Map<String, Double> getStatisticsGraphDataByIncome() {
         Map<String, Double> data = new LinkedHashMap<>();
 
-        List<OfferViewModel> offers =  this.iRecordService.retrieveAllRecords()
-                .stream()
-                .map(RecordViewModel::getOffers)
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
+        List<OfferViewModel> offers = getAllOffers();
 
         BigDecimal fullIncome = new BigDecimal(0);
 
         for (OfferViewModel offer : offers) {
-            fullIncome = fullIncome.add(offer.getDiscount().getPrice().multiply(BigDecimal.valueOf(offer.getQuantity())));
+            fullIncome = fullIncome.add(offer.getDiscountPrice().multiply(BigDecimal.valueOf(offer.getQuantity())));
         }
 
         for (OfferViewModel offer : offers) {
-            String creator = offer.getDiscount().getCreator();
+            String creator = offer.getCreator();
             if(data.containsKey(creator)){
-                Double percent = data.get(creator) + Double.parseDouble(String.valueOf((offer.getDiscount().getPrice()
+                Double percent = data.get(creator) + Double.parseDouble(String.valueOf((offer.getDiscountPrice()
                         .multiply(BigDecimal.valueOf(offer.getQuantity()))
                         .multiply(new BigDecimal(100)).divide(fullIncome, 2, RoundingMode.CEILING))));
                 data.put(creator, percent);
             }else{
-                Double percent = Double.parseDouble(String.valueOf((offer.getDiscount().getPrice()
+                Double percent = Double.parseDouble(String.valueOf((offer.getDiscountPrice()
                         .multiply(BigDecimal.valueOf(offer.getQuantity()))
                         .multiply(new BigDecimal(100)).divide(fullIncome, 2, RoundingMode.CEILING))));
                 data.put(creator, percent);
@@ -97,7 +88,10 @@ public class StatisticsService implements IStatisticsService{
     public Map<String, Integer> getStatisticsGraphDataByTime() {
         Map<String, Integer> data = new LinkedHashMap<>();
 
-        List<RecordViewModel> records =  this.iRecordService.retrieveAllRecords();
+        List<RecordViewModel> records =  this.iRecordService.retrieveAllRecords()
+                .stream()
+                .sorted(Comparator.comparing(r -> r.getOrder().getRegisterDate()))
+                .collect(toList());
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -117,6 +111,16 @@ public class StatisticsService implements IStatisticsService{
                 }
             }
         }
+
         return data;
+    }
+
+    private List<OfferViewModel> getAllOffers(){
+        return this.iRecordService.retrieveAllRecords()
+                .stream()
+                .map(r -> r.getProduct().getOffers())
+                .flatMap(List::stream)
+                .map(o -> this.modelMapper.map(o, OfferViewModel.class))
+                .collect(toList());
     }
 }

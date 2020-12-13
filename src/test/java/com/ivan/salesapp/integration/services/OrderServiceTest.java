@@ -57,37 +57,13 @@ public class OrderServiceTest {
 
     @Test
     public void findAllOrders_whenOneOrder_returnOneOrder() {
-        String customer = "Test customer";
-        String productImageUrl = "http://test.url";
-        String productName = "test product";
-        BigDecimal productPrice = BigDecimal.valueOf(99.99);
-
-        Order order = getNewOrder(customer, productImageUrl, productName, productPrice);
+        Order order = new Order();
 
         orders.add(order);
 
         List<OrderServiceModel> result = iOrderService.findAllOrders();
-        OrderServiceModel orderResult = result.get(0);
 
         assertEquals(1, result.size());
-        assertEquals(customer, orderResult.getCustomer().getUsername());
-        assertEquals(productName, orderResult.getProducts()
-                .stream()
-                .findFirst()
-                .map(o -> o.getProduct().getName())
-                .orElseThrow(IllegalArgumentException::new));
-
-        assertEquals(productImageUrl, orderResult.getProducts()
-                .stream()
-                .findFirst()
-                .map(p -> p.getProduct().getImageUrl())
-                .orElseThrow());
-
-        assertEquals(productPrice, orderResult.getProducts()
-                .stream()
-                .findFirst()
-                .map(p -> p.getProduct().getPrice())
-                .orElseThrow());
     }
 
     @Test
@@ -150,25 +126,4 @@ public class OrderServiceTest {
 
         assertTrue(ordersInRange.isEmpty());
     }
-
-
-    private Order getNewOrder(String customer, String productImageUrl, String productName, BigDecimal productPrice){
-        Order order = new Order();
-        order.setCustomer(new User() {{
-            setUsername(customer);
-        }});
-        order.setProducts(new ArrayList<>());
-        OrderProduct orderProduct = new OrderProduct();
-        orderProduct.setProduct(new Product(){{
-            setImageUrl(productImageUrl);
-            setName(productName);
-            setPrice(productPrice);
-            setCategories(List.of(new Category()));
-        }});
-        order.getProducts().add(orderProduct);
-
-        return order;
-    }
-
-
 }

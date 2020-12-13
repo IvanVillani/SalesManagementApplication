@@ -34,8 +34,8 @@
                         <th:block th:if="*{stockQuantity} != 0">
                             <p class="text-uppercase" th:text="|**STOCK**(*{product.price}) × *{stockQuantity}|"></p>
                         </th:block>
-                        <th:block th:each="offer : *{offers}" th:object="${offer}">
-                            <p class="text-uppercase" th:text="|*{discount.creator}(*{discount.price}) × *{quantity}|"></p>
+                        <th:block th:each="offer : *{product.offers}" th:object="${offer}">
+                            <p class="text-uppercase" th:text="|*{creator}(*{discountPrice}) × *{quantity}|"></p>
                         </th:block>
                     </td>
                     <td class="col-md-2 text-center" th:text="*{fullQuantity}"></td>

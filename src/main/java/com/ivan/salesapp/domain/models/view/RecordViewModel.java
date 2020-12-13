@@ -1,6 +1,7 @@
 package com.ivan.salesapp.domain.models.view;
 
 import com.ivan.salesapp.domain.models.service.DiscountServiceModel;
+import com.ivan.salesapp.domain.models.service.OrderProductServiceModel;
 import com.ivan.salesapp.domain.models.service.OrderServiceModel;
 import com.ivan.salesapp.domain.models.service.ProductServiceModel;
 
@@ -10,8 +11,7 @@ import java.util.List;
 public class RecordViewModel {
     private String id;
     private OrderViewModel order;
-    private ProductDetailsViewModel product;
-    private List<OfferViewModel> offers;
+    private OrderProductServiceModel product;
     private BigDecimal price;
     private Integer discountQuantity;
     private Integer stockQuantity;
@@ -36,20 +36,12 @@ public class RecordViewModel {
         this.order = order;
     }
 
-    public ProductDetailsViewModel getProduct() {
+    public OrderProductServiceModel getProduct() {
         return product;
     }
 
-    public void setProduct(ProductDetailsViewModel product) {
+    public void setProduct(OrderProductServiceModel product) {
         this.product = product;
-    }
-
-    public List<OfferViewModel> getOffers() {
-        return offers;
-    }
-
-    public void setOffers(List<OfferViewModel> offers) {
-        this.offers = offers;
     }
 
     public BigDecimal getPrice() {
@@ -76,11 +68,11 @@ public class RecordViewModel {
         this.stockQuantity = stockQuantity;
     }
 
-    public int getFullQuantity() {
+    public Integer getFullQuantity() {
         return fullQuantity;
     }
 
-    public void setFullQuantity(int fullQuantity) {
+    public void setFullQuantity(Integer fullQuantity) {
         this.fullQuantity = fullQuantity;
     }
 }

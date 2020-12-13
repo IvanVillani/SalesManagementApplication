@@ -86,10 +86,12 @@ public class OrderService implements IOrderService, MailSenderConstants, Excepti
 
     @Override
     public List<OrderServiceModel> findOrdersByCustomer(String username) {
-        return this.orderRepository.findAllOrdersByCustomerUsernameOrderByRegisterDate(username)
+        List<OrderServiceModel> orders = this.orderRepository.findAllByCustomerOrderByRegisterDate(username)
                 .stream()
                 .map(o -> modelMapper.map(o, OrderServiceModel.class))
                 .collect(toList());
+
+        return orders;
     }
 
     @Override

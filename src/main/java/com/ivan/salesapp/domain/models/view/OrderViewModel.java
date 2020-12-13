@@ -1,5 +1,7 @@
 package com.ivan.salesapp.domain.models.view;
 
+import com.ivan.salesapp.domain.models.service.OrderProductServiceModel;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -7,8 +9,7 @@ import java.util.List;
 public class OrderViewModel {
 
     private String id;
-    private List<DiscountProductViewModel> products;
-    private UserProfileViewModel customer;
+    private String customer;
     private BigDecimal totalPrice;
     private LocalDateTime registerDate;
 
@@ -23,19 +24,11 @@ public class OrderViewModel {
         this.id = id;
     }
 
-    public List<DiscountProductViewModel> getProducts() {
-        return products;
-    }
-
-    public void setProducts(List<DiscountProductViewModel> products) {
-        this.products = products;
-    }
-
-    public UserProfileViewModel getCustomer() {
+    public String getCustomer() {
         return customer;
     }
 
-    public void setCustomer(UserProfileViewModel customer) {
+    public void setCustomer(String customer) {
         this.customer = customer;
     }
 

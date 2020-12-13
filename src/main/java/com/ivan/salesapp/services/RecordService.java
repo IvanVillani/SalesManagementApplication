@@ -2,14 +2,15 @@ package com.ivan.salesapp.services;
 
 import com.ivan.salesapp.constants.ExceptionMessageConstants;
 import com.ivan.salesapp.domain.entities.Offer;
+import com.ivan.salesapp.domain.entities.OrderProduct;
 import com.ivan.salesapp.domain.entities.Record;
-import com.ivan.salesapp.domain.entities.User;
+import com.ivan.salesapp.domain.models.service.OfferServiceModel;
 import com.ivan.salesapp.domain.models.service.RecordServiceModel;
-import com.ivan.salesapp.domain.models.service.UserServiceModel;
-import com.ivan.salesapp.domain.models.view.OfferViewModel;
 import com.ivan.salesapp.domain.models.view.RecordViewModel;
 import com.ivan.salesapp.domain.models.view.Sale;
 import com.ivan.salesapp.exceptions.RecordNotFoundException;
+import com.ivan.salesapp.repository.OfferRepository;
+import com.ivan.salesapp.repository.OrderProductRepository;
 import com.ivan.salesapp.repository.RecordRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,12 +27,16 @@ import static java.util.stream.Collectors.toList;
 public class RecordService implements IRecordService, ExceptionMessageConstants {
     private final RecordRepository recordRepository;
     private final IUserService iUserService;
+    private final OfferRepository offerRepository;
+    private final OrderProductRepository orderProductRepository;
     private final ModelMapper modelMapper;
 
     @Autowired
-    public RecordService(RecordRepository recordRepository, IUserService iUserService, ModelMapper modelMapper) {
+    public RecordService(RecordRepository recordRepository, IUserService iUserService, OfferRepository offerRepository, OrderProductRepository orderProductRepository, ModelMapper modelMapper) {
         this.recordRepository = recordRepository;
         this.iUserService = iUserService;
+        this.offerRepository = offerRepository;
+        this.orderProductRepository = orderProductRepository;
         this.modelMapper = modelMapper;
     }
 
@@ -40,6 +44,8 @@ public class RecordService implements IRecordService, ExceptionMessageConstants 
     @Override
     public void createRecord(RecordServiceModel recordServiceModel) {
         Record newRecord = this.modelMapper.map(recordServiceModel, Record.class);
+
+        newRecord.setProduct(getOrderProduct(recordServiceModel));
 
         this.recordRepository.saveAndFlush(newRecord);
 
@@ -70,19 +76,17 @@ public class RecordService implements IRecordService, ExceptionMessageConstants 
 
     @Override
     public List<Sale> retrieveSalesByUserUsername(String username) throws RecordNotFoundException {
-        UserServiceModel user = this.iUserService.findUserByUsername(username);
-
         List<RecordViewModel> records = new ArrayList<>();
 
         for (Record record : this.recordRepository.findAll()) {
-            for (Offer offer : record.getOffers()) {
-                if (user.getId().equals(offer.getDiscount().getCreator().getId())) {
+            for (Offer offer : record.getProduct().getOffers()) {
+                if (username.equals(offer.getCreator())) {
                     records.add(this.modelMapper.map(record, RecordViewModel.class));
                 }
             }
         }
 
-        return extractSalesFromRecords(records, user.getUsername());
+        return extractSalesFromRecords(records, username);
     }
 
     private List<Sale> extractSalesFromRecords(List<RecordViewModel> records, String username) throws RecordNotFoundException {
@@ -100,28 +104,45 @@ public class RecordService implements IRecordService, ExceptionMessageConstants 
     private Sale createSaleFromRecord(RecordViewModel record, String username) throws RecordNotFoundException {
         Sale sale = new Sale();
 
-        OfferViewModel offer = findOfferForMatchingCreator(record, username);
+        OfferServiceModel offer = findOfferForMatchingCreator(record, username);
 
         sale.setProduct(record.getProduct().getName());
-        sale.setDiscount(offer.getDiscount().getPrice());
+        sale.setDiscount(offer.getDiscountPrice());
         sale.setQuantity(offer.getQuantity());
 
-        BigDecimal price = offer.getDiscount().getPrice()
+        BigDecimal price = offer.getDiscountPrice()
                 .multiply(BigDecimal.valueOf(offer.getQuantity().longValue()));
 
         sale.setPrice(price);
         sale.setRegisterDate(record.getOrder().getRegisterDate());
-        sale.setCustomer(record.getOrder().getCustomer().getUsername());
+        sale.setCustomer(record.getOrder().getCustomer());
         return sale;
     }
 
-    private OfferViewModel findOfferForMatchingCreator(RecordViewModel record, String username) throws RecordNotFoundException {
+    private OfferServiceModel findOfferForMatchingCreator(RecordViewModel record, String username) throws RecordNotFoundException {
 
-        return record.getOffers()
+        return record.getProduct().getOffers()
                 .stream()
-                .filter(o -> username.equals(o.getDiscount().getCreator()))
+                .filter(o -> username.equals(o.getCreator()))
                 .findFirst().orElseThrow(() ->
                 new RecordNotFoundException(String.format(OFFER_BY_USERNAME_NOT_FOUND, username)));
 
+    }
+
+    private OrderProduct getOrderProduct(RecordServiceModel recordServiceModel){
+        OrderProduct orderProduct = this.modelMapper.map(recordServiceModel.getProduct(), OrderProduct.class);
+        orderProduct.setOffers(getOffers(recordServiceModel));
+
+        return this.orderProductRepository.saveAndFlush(orderProduct);
+    }
+
+    private List<Offer> getOffers(RecordServiceModel recordServiceModel){
+        List<Offer> offers = new ArrayList<>();
+
+        for (OfferServiceModel offer : recordServiceModel.getProduct().getOffers()) {
+            offers.add(this.offerRepository.saveAndFlush(this.modelMapper.map(offer, Offer.class)));
+        }
+
+        return offers;
     }
 }
