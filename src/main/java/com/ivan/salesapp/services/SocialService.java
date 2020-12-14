@@ -27,6 +27,7 @@ public class SocialService implements ISocialService, TwitterConstants {
         twitter.updateStatus(assembleTweet(discount));
     }
 
+    @Async
     @Override
     public List<String> getTimeLine() throws TwitterException {
         Twitter twitter = this.twitter;
@@ -36,6 +37,7 @@ public class SocialService implements ISocialService, TwitterConstants {
                 .collect(toList());
     }
 
+    @Async
     @Override
     public String sendDirectMessage(String recipientName, String msg) throws TwitterException {
 
@@ -44,6 +46,7 @@ public class SocialService implements ISocialService, TwitterConstants {
         return message.getText();
     }
 
+    @Async
     @Override
     public List<String> searchtweets() throws TwitterException {
 
@@ -56,6 +59,7 @@ public class SocialService implements ISocialService, TwitterConstants {
                 .collect(toList());
     }
 
+    @Async
     private String assembleTweet(DiscountServiceModel discount){
         return String.format(TWEET_TEMPLATE,
                 discount.getCreator().toUpperCase(),
